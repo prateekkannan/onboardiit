@@ -39,11 +39,11 @@ All colors MUST be HSL.
     --radius: 1rem;
 
     /* Route colors — used ONLY on cards, pins, dots, schedule accents */
-    --route-main-gate: 186 68% 62%;        /* #59D5E0 */
-    --route-hostel: 338 86% 64%;           /* #F4538A */
-    --route-velachery: 50 88% 67%;         /* #F5DD61 */
-    --route-gajendra: 261 53% 36%;         /* #4D2B8C */
-    --route-ecart: 39 100% 49%;            /* #FAA300 */
+    --route-main-gate: 190 97% 42%;        /* #03AED2 */
+    --route-hostel: 343 73% 47%;           /* #D12052 */
+    --route-velachery: 53 94% 56%;         /* #F8DE22 */
+    --route-gajendra: 188 39% 48%;         /* #4B9DA9 */
+    --route-ecart: 14 90% 56%;             /* #F45B26 */
 
     --sidebar-background: 0 0% 98%;
 
@@ -149,4 +149,12 @@ All colors MUST be HSL.
 .leaflet-stop-pin {
   background: transparent !important;
   border: none !important;
+}
+
+.onboard-stop:hover {
+  transform: scale(1.12);
+}
+.onboard-stop.is-active {
+  transform: scale(1.18);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.25) !important;
 }

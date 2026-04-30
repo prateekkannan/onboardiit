@@ -1,14 +1,15 @@
+import type { CSSProperties } from "react";
 import { ROUTES, type RouteId } from "@/data/routes";
 
 export function routeTextClass(routeId: RouteId): string {
   return ROUTES[routeId].textOnTop === "white" ? "text-white" : "text-black";
 }
 
-export function routeBgStyle(routeId: RouteId): React.CSSProperties {
+export function routeBgStyle(routeId: RouteId): CSSProperties {
   return { backgroundColor: ROUTES[routeId].hex };
 }
 
-export function routeBorderStyle(routeId: RouteId): React.CSSProperties {
+export function routeBorderStyle(routeId: RouteId): CSSProperties {
   return { backgroundColor: ROUTES[routeId].hex };
 }
 

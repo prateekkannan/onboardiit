@@ -19,6 +19,13 @@ export default {
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        route: {
+          mainGate: "hsl(var(--route-main-gate))",
+          hostel: "hsl(var(--route-hostel))",
+          velachery: "hsl(var(--route-velachery))",
+          gajendra: "hsl(var(--route-gajendra))",
+          ecart: "hsl(var(--route-ecart))",
+        },
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",

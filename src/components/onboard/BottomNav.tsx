@@ -1,5 +1,4 @@
 import { Map as MapIcon, CalendarClock } from "lucide-react";
-import logo from "@/assets/onboard-logo.png";
 
 export type Screen = "home" | "schedule";
 
@@ -21,13 +20,6 @@ export const BottomNav = ({ active, onChange }: BottomNavProps) => {
   return (
     <nav className="pointer-events-auto fixed inset-x-0 bottom-0 z-[600] flex items-center justify-center pb-4">
       <div className="flex items-center gap-1 rounded-full border border-black/10 bg-white/90 p-1.5 shadow-lg backdrop-blur">
-        <div className="flex items-center gap-2 rounded-full pl-3 pr-2">
-          <img src={logo} alt="Onboard logo" className="h-5 w-5" />
-          <span className="text-sm font-extrabold tracking-tight text-black">
-            Onboard
-          </span>
-        </div>
-        <div className="mx-1 h-5 w-px bg-black/10" aria-hidden />
         {tabs.map((t) => {
           const isActive = active === t.id;
           return (

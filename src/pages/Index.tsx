@@ -3,6 +3,7 @@ import { CampusMap } from "@/components/onboard/CampusMap";
 import { BottomPanel } from "@/components/onboard/BottomPanel";
 import { BottomNav, type Screen } from "@/components/onboard/BottomNav";
 import { SchedulePage } from "@/components/onboard/SchedulePage";
+import { TopBar } from "@/components/onboard/TopBar";
 
 const Index = () => {
   const [screen, setScreen] = useState<Screen>("home");
@@ -18,6 +19,7 @@ const Index = () => {
         <SchedulePage />
       )}
 
+      <TopBar />
       <BottomNav active={screen} onChange={setScreen} />
     </div>
   );

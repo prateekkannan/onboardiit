@@ -39,11 +39,11 @@ All colors MUST be HSL.
     --radius: 1rem;
 
     /* Route colors — used ONLY on cards, pins, dots, schedule accents */
-    --route-main-gate: 199 89% 48%;        /* #0EA5E9 Sky Blue */
-    --route-hostel: 338 100% 59%;          /* #FF2D78 Hot Pink */
-    --route-velachery: 53 100% 60%;        /* #FFE034 Light Yellow */
-    --route-gajendra: 224 76% 48%;         /* #1D4ED8 Royal Blue */
-    --route-ecart: 86 100% 62%;            /* #A8FF3E Chartreuse */
+    --route-main-gate: 186 68% 62%;        /* #59D5E0 */
+    --route-hostel: 338 86% 64%;           /* #F4538A */
+    --route-velachery: 50 88% 67%;         /* #F5DD61 */
+    --route-gajendra: 261 53% 36%;         /* #4D2B8C */
+    --route-ecart: 39 100% 49%;            /* #FAA300 */
 
     --sidebar-background: 0 0% 98%;
 

@@ -6,13 +6,19 @@ interface BusCardProps {
   minutesAway: number;
   busName: string;
   busType: BusType;
+  arrivalTime?: string;
 }
 
-export const BusCard = ({ routeId, minutesAway, busName, busType }: BusCardProps) => {
+export const BusCard = ({
+  routeId,
+  minutesAway,
+  busName,
+  busType,
+  arrivalTime,
+}: BusCardProps) => {
   const route = ROUTES[routeId];
   const text = routeTextClass(routeId);
-  const pillBg =
-    route.textOnTop === "white" ? "bg-white/20" : "bg-black/10";
+  const pillBg = route.textOnTop === "white" ? "bg-white/20" : "bg-black/10";
 
   return (
     <div
@@ -20,8 +26,17 @@ export const BusCard = ({ routeId, minutesAway, busName, busType }: BusCardProps
       style={{ backgroundColor: route.hex }}
     >
       <div className="flex items-start justify-between gap-2">
-        <h3 className="text-base font-bold leading-tight">{route.direction}</h3>
-        <span className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${pillBg}`}>
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-wider opacity-80">
+            {route.name}
+          </p>
+          <h3 className="mt-0.5 text-base font-bold leading-tight">
+            {route.direction}
+          </h3>
+        </div>
+        <span
+          className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide ${pillBg}`}
+        >
           {busType}
         </span>
       </div>
@@ -30,7 +45,10 @@ export const BusCard = ({ routeId, minutesAway, busName, busType }: BusCardProps
         <div className="text-3xl font-extrabold leading-none">
           {formatCountdown(minutesAway)}
         </div>
-        <div className="mt-2 text-sm font-semibold opacity-90">{busName}</div>
+        <div className="mt-2 flex items-center justify-between text-sm font-semibold opacity-90">
+          <span>{busName}</span>
+          {arrivalTime && <span className="tabular-nums">{arrivalTime}</span>}
+        </div>
       </div>
     </div>
   );

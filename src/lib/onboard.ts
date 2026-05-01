@@ -32,11 +32,11 @@ export function formatCountdown(min: number): string {
  *  always looks alive on first load.
  */
 export function getDemoNowMinutes(): number {
-  // Real wall-clock minutes-of-day, but clamped into the service window
-  // so the app always has interesting upcoming buses.
+  // Real wall-clock minutes-of-day, clamped into the service window so the
+  // app always shows interesting upcoming buses.
   const d = new Date();
   const real = d.getHours() * 60 + d.getMinutes();
-  if (real < 6 * 60 + 30) return 8 * 60 + 12;   // pre-service → 08:12
-  if (real > 21 * 60 + 30) return 19 * 60 + 47; // late night → 19:47
+  if (real < 6 * 60 + 20) return 8 * 60 + 12;   // pre-service → 08:12
+  if (real > 21 * 60 + 10) return 19 * 60 + 47; // late night → 19:47
   return real;
 }

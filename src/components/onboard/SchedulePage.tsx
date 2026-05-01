@@ -1,45 +1,55 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ROUTES, ROUTE_ORDER, type RouteId } from "@/data/routes";
 import { SCHEDULE, type Departure } from "@/data/schedule";
-import { getDemoNowMinutes, hmToMin } from "@/lib/onboard";
+import { ROUTE_STOPS, getStop } from "@/data/stops";
+import { getDemoNowMinutes, hmToMin, routeTextClass } from "@/lib/onboard";
 
 type Filter = "all" | RouteId;
 
 export const SchedulePage = () => {
   const now = getDemoNowMinutes();
   const [filter, setFilter] = useState<Filter>("all");
-  const listRef = useRef<HTMLUListElement | null>(null);
-  const nextRef = useRef<HTMLLIElement | null>(null);
+  const nextRefs = useRef<Record<RouteId, HTMLLIElement | null>>({
+    r1: null, r2: null, r3: null, r4: null,
+  });
 
-  const departures = useMemo<Departure[]>(() => {
-    const all =
-      filter === "all"
-        ? ROUTE_ORDER.flatMap((r) => SCHEDULE[r])
-        : [...SCHEDULE[filter]];
-    return all.sort((a, b) => hmToMin(a.time) - hmToMin(b.time));
-  }, [filter]);
+  const visibleRoutes: RouteId[] = filter === "all" ? ROUTE_ORDER : [filter];
 
-  const nextIdx = useMemo(
-    () => departures.findIndex((d) => hmToMin(d.time) >= now),
-    [departures, now],
-  );
-
-  // Smoothly scroll the "next" departure into view when filter changes / mount.
-  useEffect(() => {
-    if (nextRef.current && listRef.current) {
-      // Slight delay so layout settles after filter swap.
-      const t = window.setTimeout(() => {
-        nextRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-      }, 60);
-      return () => window.clearTimeout(t);
+  // Find the index of the next departure per route.
+  const nextIdxByRoute = useMemo(() => {
+    const out: Partial<Record<RouteId, number>> = {};
+    for (const rid of ROUTE_ORDER) {
+      out[rid] = SCHEDULE[rid].findIndex((d) => hmToMin(d.time) >= now);
     }
-  }, [filter, nextIdx]);
+    return out;
+  }, [now]);
+
+  // After mount/filter change, scroll the closest "next" into view.
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      // Pick the soonest "next" across visible routes.
+      let bestEl: HTMLLIElement | null = null;
+      let bestMin = Infinity;
+      for (const rid of visibleRoutes) {
+        const idx = nextIdxByRoute[rid] ?? -1;
+        if (idx === -1) continue;
+        const dep = SCHEDULE[rid][idx];
+        const mins = hmToMin(dep.time) - now;
+        if (mins < bestMin) {
+          bestMin = mins;
+          bestEl = nextRefs.current[rid];
+        }
+      }
+      bestEl?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 80);
+    return () => window.clearTimeout(t);
+  }, [filter, nextIdxByRoute, now, visibleRoutes]);
 
   const chips: Array<{ id: Filter; label: string; hex?: string }> = [
-    { id: "all", label: "All directions" },
+    { id: "all", label: "All routes" },
     ...ROUTE_ORDER.map((r) => ({
       id: r as Filter,
-      label: ROUTES[r].direction,
+      label: ROUTES[r].name,
       hex: ROUTES[r].hex,
     })),
   ];
@@ -54,7 +64,7 @@ export const SchedulePage = () => {
           Schedule
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Centred on the next departure. Scroll up for earlier, down for later.
+          Centred on the next departure. Scroll to see earlier or later.
         </p>
 
         <div className="no-scrollbar -mx-5 mt-4 flex gap-2 overflow-x-auto px-5">
@@ -83,54 +93,101 @@ export const SchedulePage = () => {
         </div>
       </header>
 
-      <div className="px-5 pt-6">
-        <ul
-          ref={listRef}
-          className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card animate-fade-in"
-        >
-          {departures.map((d, i) => {
-            const route = ROUTES[d.routeId];
-            const past = hmToMin(d.time) < now;
-            const isNext = i === nextIdx;
-            return (
-              <li
-                key={`${d.routeId}-${d.time}-${d.busName}-${i}`}
-                ref={isNext ? nextRef : undefined}
-                className={`flex items-center justify-between px-4 py-3 transition-colors ${
-                  past ? "text-muted-foreground" : "text-foreground"
-                } ${isNext ? "animate-scale-in" : ""}`}
-                style={
-                  isNext
-                    ? { backgroundColor: `${route.hex}26` }
-                    : undefined
-                }
-              >
-                <div className="flex items-center gap-3">
-                  <span
-                    className="h-8 w-1.5 shrink-0 rounded-full"
-                    style={{ backgroundColor: route.hex }}
-                    aria-hidden
-                  />
-                  <div className="flex flex-col">
-                    <span className="tabular-nums text-base font-bold leading-none">
-                      {d.time}
-                    </span>
-                    <span className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                      {route.shortName} · {d.busType}
-                    </span>
-                  </div>
-                  {isNext && (
-                    <span className="ml-1 rounded-full bg-black px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
-                      Next
-                    </span>
-                  )}
-                </div>
-                <div className="text-sm font-medium">{d.busName}</div>
-              </li>
-            );
-          })}
-        </ul>
+      <div className="space-y-8 px-5 pt-6">
+        {visibleRoutes.map((rid) => (
+          <RouteSchedule
+            key={rid}
+            routeId={rid}
+            now={now}
+            nextIdx={nextIdxByRoute[rid] ?? -1}
+            registerNextRef={(el) => (nextRefs.current[rid] = el)}
+          />
+        ))}
       </div>
     </div>
+  );
+};
+
+interface RouteScheduleProps {
+  routeId: RouteId;
+  now: number;
+  nextIdx: number;
+  registerNextRef: (el: HTMLLIElement | null) => void;
+}
+
+const RouteSchedule = ({
+  routeId,
+  now,
+  nextIdx,
+  registerNextRef,
+}: RouteScheduleProps) => {
+  const route = ROUTES[routeId];
+  const text = routeTextClass(routeId);
+  const departures: Departure[] = SCHEDULE[routeId];
+  const seq = ROUTE_STOPS[routeId];
+  const firstStopName = getStop(seq[0])!.name;
+  const lastStopName = getStop(seq[seq.length - 1])!.name;
+
+  return (
+    <section>
+      <div
+        className={`flex items-center justify-between rounded-2xl px-4 py-3 ${text}`}
+        style={{ backgroundColor: route.hex }}
+      >
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-wider opacity-80">
+            {route.name}
+          </p>
+          <h2 className="text-base font-extrabold leading-tight">
+            {firstStopName} → {lastStopName}
+          </h2>
+        </div>
+        <span className="rounded-full bg-black/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider">
+          every 20 min
+        </span>
+      </div>
+
+      <ul className="mt-3 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
+        {departures.map((d, i) => {
+          const past = hmToMin(d.time) < now;
+          const isNext = i === nextIdx;
+          const lastEta = d.stopETAs[d.stopETAs.length - 1];
+          return (
+            <li
+              key={`${d.busName}-${d.time}`}
+              ref={isNext ? registerNextRef : undefined}
+              className={`flex items-center justify-between px-4 py-3 transition-colors ${
+                past ? "text-muted-foreground" : "text-foreground"
+              } ${isNext ? "animate-scale-in" : ""}`}
+              style={isNext ? { backgroundColor: `${route.hex}26` } : undefined}
+            >
+              <div className="flex items-center gap-3">
+                <span
+                  className="h-8 w-1.5 shrink-0 rounded-full"
+                  style={{ backgroundColor: route.hex }}
+                  aria-hidden
+                />
+                <div className="flex flex-col">
+                  <span className="tabular-nums text-base font-bold leading-none">
+                    {d.time}
+                  </span>
+                  <span className="mt-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {d.busName} · arr {lastEta.time}
+                  </span>
+                </div>
+                {isNext && (
+                  <span className="ml-1 rounded-full bg-black px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                    Next
+                  </span>
+                )}
+              </div>
+              <div className="text-sm font-medium tabular-nums">
+                {Math.max(0, hmToMin(d.time) - now)} min
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
   );
 };

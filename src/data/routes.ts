@@ -1,69 +1,55 @@
-export type RouteId = "mainGate" | "hostel" | "velachery" | "gajendra" | "ecart";
+// Four official IIT Madras campus bus routes.
+export type RouteId = "r1" | "r2" | "r3" | "r4";
 
-export type BusType = "Regular" | "EV-AC" | "E-Cart";
+export type BusType = "Bus";
 
 export interface RouteInfo {
   id: RouteId;
+  name: string;             // e.g. "Route 1"
   direction: string;        // headline on cards
   shortName: string;
   hex: string;
-  cssVar: string;           // tailwind class fragment for hsl var
   textOnTop: "black" | "white";
   defaultBusType: BusType;
 }
 
 export const ROUTES: Record<RouteId, RouteInfo> = {
-  mainGate: {
-    id: "mainGate",
-    direction: "Towards Main Gate",
-    shortName: "Main Gate",
+  r1: {
+    id: "r1",
+    name: "Route 1",
+    direction: "Main Gate → Velachery Gate",
+    shortName: "MG → VG",
     hex: "#03AED2",
-    cssVar: "route-main-gate",
     textOnTop: "white",
-    defaultBusType: "Regular",
+    defaultBusType: "Bus",
   },
-  hostel: {
-    id: "hostel",
-    direction: "Towards Hostel",
-    shortName: "Hostel Zone",
+  r2: {
+    id: "r2",
+    name: "Route 2",
+    direction: "Velachery Gate → Main Gate",
+    shortName: "VG → MG",
     hex: "#D12052",
-    cssVar: "route-hostel",
     textOnTop: "white",
-    defaultBusType: "EV-AC",
+    defaultBusType: "Bus",
   },
-  velachery: {
-    id: "velachery",
-    direction: "Towards Velachery Gate",
-    shortName: "Velachery Gate",
+  r3: {
+    id: "r3",
+    name: "Route 3",
+    direction: "Velachery Gate → Hostel",
+    shortName: "VG → Hostel",
     hex: "#F8DE22",
-    cssVar: "route-velachery",
     textOnTop: "black",
-    defaultBusType: "Regular",
+    defaultBusType: "Bus",
   },
-  gajendra: {
-    id: "gajendra",
-    direction: "Towards Gajendra Circle",
-    shortName: "Gajendra Circle",
-    hex: "#4B9DA9",
-    cssVar: "route-gajendra",
-    textOnTop: "white",
-    defaultBusType: "EV-AC",
-  },
-  ecart: {
-    id: "ecart",
-    direction: "E-Cart",
-    shortName: "E-Cart",
+  r4: {
+    id: "r4",
+    name: "Route 4",
+    direction: "Hostel → Main Gate",
+    shortName: "Hostel → MG",
     hex: "#F45B26",
-    cssVar: "route-ecart",
     textOnTop: "white",
-    defaultBusType: "E-Cart",
+    defaultBusType: "Bus",
   },
 };
 
-export const ROUTE_ORDER: RouteId[] = [
-  "mainGate",
-  "hostel",
-  "velachery",
-  "gajendra",
-  "ecart",
-];
+export const ROUTE_ORDER: RouteId[] = ["r1", "r2", "r3", "r4"];

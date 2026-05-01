@@ -1,30 +1,27 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronUp, MapPin, X } from "lucide-react";
-import { SCHEDULE } from "@/data/schedule";
-import { ROUTES, type RouteId } from "@/data/routes";
-import { getDemoNowMinutes, hmToMin } from "@/lib/onboard";
+import { upcomingArrivalsAt } from "@/data/schedule";
+import { ROUTES } from "@/data/routes";
+import { getDemoNowMinutes } from "@/lib/onboard";
 import { BusCard } from "./BusCard";
 import { useNearestStop } from "@/hooks/useNearestStop";
+import { BOTTOM_NAV_HEIGHT } from "./BottomNav";
 import type { Stop } from "@/data/stops";
 
-interface IncomingBus {
-  routeId: RouteId;
-  busName: string;
-  busType: ReturnType<() => (typeof SCHEDULE)[RouteId][number]["busType"]>;
-  minutesAway: number;
-}
-
 interface BottomPanelProps {
-  /** Optional override of the stop displayed (e.g. user tapped a pin). */
   selectedStop?: Stop | null;
   onClearSelected?: () => void;
 }
 
-// Sheet collapses to a slim peek bar that's still visible above the nav.
-const PEEK_HEIGHT = 72;       // px visible when collapsed
-const COLLAPSE_THRESHOLD = 80; // px drag before snapping closed
+// Visible peek height when collapsed — kept ABOVE the bottom nav so the
+// drag handle is always reachable.
+const PEEK_HEIGHT = 64;
+const NAV_GAP = BOTTOM_NAV_HEIGHT + 8; // sit just above nav
 
-export const BottomPanel = ({ selectedStop, onClearSelected }: BottomPanelProps) => {
+export const BottomPanel = ({
+  selectedStop,
+  onClearSelected,
+}: BottomPanelProps) => {
   const now = getDemoNowMinutes();
   const { stop: geoStop, source } = useNearestStop();
   const stop = selectedStop ?? geoStop;
@@ -32,11 +29,10 @@ export const BottomPanel = ({ selectedStop, onClearSelected }: BottomPanelProps)
   const sheetRef = useRef<HTMLDivElement | null>(null);
   const [sheetH, setSheetH] = useState(360);
   const [collapsed, setCollapsed] = useState(false);
-  const [dragY, setDragY] = useState(0); // additive offset while dragging
+  const [dragY, setDragY] = useState(0);
   const dragStart = useRef<number | null>(null);
   const startCollapsed = useRef(false);
 
-  // Measure the sheet height so the collapsed translation matches it exactly.
   useEffect(() => {
     if (!sheetRef.current) return;
     const ro = new ResizeObserver(() => {
@@ -46,33 +42,21 @@ export const BottomPanel = ({ selectedStop, onClearSelected }: BottomPanelProps)
     return () => ro.disconnect();
   }, []);
 
-  // Tapping a new stop on the map should always reveal the sheet.
   useEffect(() => {
     if (selectedStop) setCollapsed(false);
   }, [selectedStop]);
 
-  const incoming = useMemo<IncomingBus[]>(() => {
-    const result: IncomingBus[] = [];
-    for (const routeId of stop.routes) {
-      const next = SCHEDULE[routeId].find((d) => hmToMin(d.time) >= now);
-      if (!next) continue;
-      const minutesAway = hmToMin(next.time) - now;
-      if (minutesAway > 60) continue;
-      result.push({
-        routeId,
-        busName: next.busName,
-        busType: next.busType,
-        minutesAway,
-      });
-    }
-    return result.sort((a, b) => a.minutesAway - b.minutesAway);
-  }, [now, stop.routes]);
+  const incoming = useMemo(
+    () => upcomingArrivalsAt(stop.id, now, 90),
+    [now, stop.id],
+  );
 
   const stopRouteColors = stop.routes.map((r) => ROUTES[r].hex);
 
-  // Distance the sheet must travel down to be fully collapsed (peek visible).
+  // The sheet's natural bottom sits flush with screen bottom. We keep it
+  // raised by NAV_GAP so the handle is always above the bottom nav.
+  // Collapsed translation = full sheet height minus the peek visible area.
   const collapsedTranslate = Math.max(0, sheetH - PEEK_HEIGHT);
-  // Base translate based on collapsed state, plus live drag offset.
   const baseTranslate = collapsed ? collapsedTranslate : 0;
   const liveTranslate = Math.min(
     collapsedTranslate,
@@ -92,13 +76,7 @@ export const BottomPanel = ({ selectedStop, onClearSelected }: BottomPanelProps)
   const onPointerUp = () => {
     if (dragStart.current === null) return;
     const finalTranslate = baseTranslate + dragY;
-    // Snap based on whether we crossed midway.
-    const shouldCollapse =
-      finalTranslate > collapsedTranslate / 2
-        ? true
-        : finalTranslate > COLLAPSE_THRESHOLD && startCollapsed.current
-        ? true
-        : false;
+    const shouldCollapse = finalTranslate > collapsedTranslate / 2;
     setCollapsed(shouldCollapse);
     setDragY(0);
     dragStart.current = null;
@@ -107,15 +85,17 @@ export const BottomPanel = ({ selectedStop, onClearSelected }: BottomPanelProps)
   return (
     <div
       ref={sheetRef}
-      className="glass-panel pointer-events-auto absolute inset-x-0 bottom-0 z-[500] rounded-t-3xl px-5 pb-24 pt-3 will-change-transform"
+      className="glass-panel pointer-events-auto absolute inset-x-0 z-[500] rounded-t-3xl px-5 pt-3 will-change-transform"
       style={{
+        bottom: NAV_GAP,
+        paddingBottom: 16,
         transform: `translateY(${liveTranslate}px)`,
         transition: isDragging
           ? "none"
           : "transform 320ms cubic-bezier(0.22, 1, 0.36, 1)",
       }}
     >
-      {/* Drag handle / header — always pointer-interactive */}
+      {/* Drag handle — always interactive, always above the bottom nav */}
       <div
         className="mx-auto flex w-full cursor-grab touch-none flex-col items-center pb-2 pt-1 active:cursor-grabbing"
         onPointerDown={onPointerDown}
@@ -123,11 +103,10 @@ export const BottomPanel = ({ selectedStop, onClearSelected }: BottomPanelProps)
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
         onClick={() => {
-          // Tap (no drag) on handle toggles state.
           if (!isDragging && Math.abs(dragY) < 4) setCollapsed((c) => !c);
         }}
       >
-        <div className="h-1 w-12 rounded-full bg-black/25 transition-all" aria-hidden />
+        <div className="h-1.5 w-12 rounded-full bg-black/30 transition-all" aria-hidden />
         {collapsed && (
           <div className="mt-2 flex items-center gap-2 text-black animate-fade-in">
             <ChevronUp className="h-4 w-4" />
@@ -139,7 +118,7 @@ export const BottomPanel = ({ selectedStop, onClearSelected }: BottomPanelProps)
         )}
       </div>
 
-      <div className="mt-2 flex items-end justify-between gap-3">
+      <div className="mt-1 flex items-end justify-between gap-3">
         <div>
           <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-black/60">
             <MapPin className="h-3 w-3" />
@@ -149,7 +128,7 @@ export const BottomPanel = ({ selectedStop, onClearSelected }: BottomPanelProps)
               ? "Nearest stop"
               : "Nearest stop · default"}
           </p>
-          <h1 className="mt-1 text-3xl font-extrabold leading-tight text-black">
+          <h1 className="mt-1 text-2xl font-extrabold leading-tight text-black">
             {stop.name}
           </h1>
         </div>
@@ -178,21 +157,25 @@ export const BottomPanel = ({ selectedStop, onClearSelected }: BottomPanelProps)
       <div className="mt-4">
         {incoming.length === 0 ? (
           <p className="rounded-2xl bg-black/5 px-4 py-6 text-center text-sm font-medium text-black/60">
-            No buses arriving in the next hour.
+            No buses arriving soon at this stop.
           </p>
         ) : (
           <div className="no-scrollbar -mx-5 flex gap-3 overflow-x-auto px-5 pb-1">
             {incoming.map((b, i) => (
               <div
-                key={`${b.routeId}-${b.busName}`}
+                key={`${b.routeId}-${b.busName}-${b.arrivalTime}`}
                 className="animate-fade-in"
-                style={{ animationDelay: `${i * 60}ms`, animationFillMode: "both" }}
+                style={{
+                  animationDelay: `${i * 60}ms`,
+                  animationFillMode: "both",
+                }}
               >
                 <BusCard
                   routeId={b.routeId}
                   minutesAway={b.minutesAway}
                   busName={b.busName}
                   busType={b.busType}
+                  arrivalTime={b.arrivalTime}
                 />
               </div>
             ))}

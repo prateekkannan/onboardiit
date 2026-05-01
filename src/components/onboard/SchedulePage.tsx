@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ROUTES, ROUTE_ORDER, type RouteId } from "@/data/routes";
 import { SCHEDULE, type Departure } from "@/data/schedule";
-import { ROUTE_STOPS, getStop } from "@/data/stops";
 import { getDemoNowMinutes, hmToMin, routeTextClass } from "@/lib/onboard";
 
 type Filter = "all" | RouteId;
@@ -124,9 +123,6 @@ const RouteSchedule = ({
   const route = ROUTES[routeId];
   const text = routeTextClass(routeId);
   const departures: Departure[] = SCHEDULE[routeId];
-  const seq = ROUTE_STOPS[routeId];
-  const firstStopName = getStop(seq[0])!.name;
-  const lastStopName = getStop(seq[seq.length - 1])!.name;
 
   return (
     <section>
@@ -139,7 +135,7 @@ const RouteSchedule = ({
             {route.name}
           </p>
           <h2 className="text-base font-extrabold leading-tight">
-            {firstStopName} → {lastStopName}
+            {route.direction}
           </h2>
         </div>
         <span className="rounded-full bg-black/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider">

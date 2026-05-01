@@ -1,5 +1,5 @@
-// Four official IIT Madras campus bus routes.
-export type RouteId = "r1" | "r2" | "r3" | "r4";
+// Six official IIT Madras campus bus routes.
+export type RouteId = "r1" | "r2" | "r3" | "r4" | "r5" | "r6";
 
 export type BusType = "Bus";
 
@@ -50,6 +50,24 @@ export const ROUTES: Record<RouteId, RouteInfo> = {
     textOnTop: "white",
     defaultBusType: "Bus",
   },
+  r5: {
+    id: "r5",
+    name: "Route 5",
+    direction: "Hostel → Velachery Gate",
+    shortName: "Hostel → VG",
+    hex: "#B7B1F2",
+    textOnTop: "black",
+    defaultBusType: "Bus",
+  },
+  r6: {
+    id: "r6",
+    name: "Route 6",
+    direction: "Main Gate → Hostel",
+    shortName: "MG → Hostel",
+    hex: "#748873",
+    textOnTop: "white",
+    defaultBusType: "Bus",
+  },
 };
 
-export const ROUTE_ORDER: RouteId[] = ["r1", "r2", "r3", "r4"];
+export const ROUTE_ORDER: RouteId[] = ["r1", "r2", "r3", "r4", "r5", "r6"];

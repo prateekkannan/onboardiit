@@ -15,7 +15,8 @@ export interface NearestStopState {
 }
 
 export function useNearestStop(): NearestStopState {
-  const fallback = STOPS.find((s) => s.id === NEAREST_STOP_ID) ?? STOPS[0];
+  const fallback =
+    STOPS.find((s) => s.id === NEAREST_STOP_ID) ?? STOPS[0];
   const [state, setState] = useState<NearestStopState>({
     stop: fallback,
     source: "default",
@@ -27,17 +28,17 @@ export function useNearestStop(): NearestStopState {
       setState({ stop: fallback, source: "unsupported", loading: false });
       return;
     }
-    const id = navigator.geolocation.getCurrentPosition(
+    navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const stop = findNearestStop([pos.coords.latitude, pos.coords.longitude]);
+        const stop = findNearestStop([
+          pos.coords.latitude,
+          pos.coords.longitude,
+        ]);
         setState({ stop, source: "geo", loading: false });
       },
-      () => {
-        setState({ stop: fallback, source: "denied", loading: false });
-      },
+      () => setState({ stop: fallback, source: "denied", loading: false }),
       { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 },
     );
-    void id;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

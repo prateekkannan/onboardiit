@@ -10,7 +10,7 @@ export const SchedulePage = () => {
   const now = getDemoNowMinutes();
   const [filter, setFilter] = useState<Filter>("all");
   const nextRefs = useRef<Record<RouteId, HTMLLIElement | null>>({
-    r1: null, r2: null, r3: null, r4: null,
+    r1: null, r2: null, r3: null, r4: null, r5: null, r6: null,
   });
 
   const visibleRoutes: RouteId[] = filter === "all" ? ROUTE_ORDER : [filter];

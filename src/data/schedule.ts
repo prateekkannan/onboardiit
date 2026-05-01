@@ -52,6 +52,8 @@ const ROUTE_OFFSETS: Record<RouteId, number[]> = {
   r2: cumulativeOffsets("r2"),
   r3: cumulativeOffsets("r3"),
   r4: cumulativeOffsets("r4"),
+  r5: cumulativeOffsets("r5"),
+  r6: cumulativeOffsets("r6"),
 };
 
 interface RouteSpec {
@@ -67,6 +69,8 @@ const ROUTE_SPEC: Record<RouteId, RouteSpec> = {
   r2: { startMin: 6 * 60 + 15, endMin: 21 * 60 + 35, intervalMin: 20, prefix: "R2", fleetSize: 4 },
   r3: { startMin: 6 * 60 + 20, endMin: 21 * 60 + 20, intervalMin: 20, prefix: "R3", fleetSize: 4 },
   r4: { startMin: 6 * 60 + 20, endMin: 21 * 60 + 20, intervalMin: 20, prefix: "R4", fleetSize: 4 },
+  r5: { startMin: 6 * 60 + 20, endMin: 21 * 60 + 20, intervalMin: 20, prefix: "R5", fleetSize: 4 },
+  r6: { startMin: 6 * 60 + 20, endMin: 21 * 60 + 20, intervalMin: 20, prefix: "R6", fleetSize: 4 },
 };
 
 function buildRouteSchedule(routeId: RouteId): Departure[] {
@@ -99,6 +103,8 @@ export const SCHEDULE: Record<RouteId, Departure[]> = {
   r2: buildRouteSchedule("r2"),
   r3: buildRouteSchedule("r3"),
   r4: buildRouteSchedule("r4"),
+  r5: buildRouteSchedule("r5"),
+  r6: buildRouteSchedule("r6"),
 };
 
 /**

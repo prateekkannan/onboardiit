@@ -8,49 +8,47 @@ export interface Stop {
   routes: RouteId[];
 }
 
-// IIT Madras campus stops placed along the actual road network:
-//  - Bonn Avenue   : Main Gate → Admin → Gajendra Circle (N–S spine)
-//  - Delhi Avenue  : Gajendra Circle → eastward across academic zone
-//  - Alumni Avenue : long E–W spine through academics & central facilities
-//  - Playfield Avenue : along OAT / Stadium / Sports complex
-//  - Hostel Avenue : down the hostel zone (Himalaya → Tapti)
-//
-// All coordinates kept inside campus (≈12.985–12.992 N, 80.230–80.240 E).
+// Exact GPS coordinates for IIT Madras campus stops — do not adjust.
 export const STOPS: Stop[] = [
-  // ── Bonn Avenue ────────────────────────────────────────────────
-  { id: "main-gate",        name: "Main Gate",                  lat: 12.9916, lng: 80.2337, routes: ["mainGate", "ecart"] },
-  { id: "admin-block",      name: "Administrative Block",       lat: 12.9905, lng: 80.2336, routes: ["mainGate", "gajendra", "ecart"] },
-  { id: "gajendra-circle",  name: "Gajendra Circle",            lat: 12.9897, lng: 80.2335, routes: ["mainGate", "hostel", "gajendra", "velachery", "ecart"] },
-
-  // ── Delhi Avenue (E from Gajendra Circle) ──────────────────────
-  { id: "central-library",  name: "Central Library",            lat: 12.9897, lng: 80.2348, routes: ["mainGate", "gajendra", "ecart"] },
-  { id: "clt",              name: "CLT (Central Lecture Theatre)", lat: 12.9898, lng: 80.2358, routes: ["gajendra", "ecart"] },
-
-  // ── Alumni Avenue (E–W academic spine) ─────────────────────────
-  { id: "humanities",       name: "HSB (Humanities & Sciences)", lat: 12.9905, lng: 80.2348, routes: ["mainGate", "gajendra", "ecart"] },
-  { id: "meche-dept",       name: "MechE Department",            lat: 12.9909, lng: 80.2358, routes: ["gajendra", "ecart"] },
-  { id: "civile-dept",      name: "Civil Engg Department",       lat: 12.9912, lng: 80.2369, routes: ["gajendra", "ecart"] },
-  { id: "ee-dept",          name: "EE Department",               lat: 12.9908, lng: 80.2378, routes: ["gajendra", "velachery", "ecart"] },
-  { id: "biotech",          name: "Biotech Block",               lat: 12.9902, lng: 80.2386, routes: ["velachery", "ecart"] },
-
-  // ── Playfield Avenue (Stadium / OAT / Sports) ──────────────────
-  { id: "oat",              name: "Open Air Theatre",            lat: 12.9889, lng: 80.2342, routes: ["gajendra", "ecart"] },
-  { id: "stadium",          name: "Chemplast Stadium",           lat: 12.9883, lng: 80.2333, routes: ["gajendra", "ecart"] },
-  { id: "sac",              name: "Students Activities Centre",  lat: 12.9876, lng: 80.2326, routes: ["gajendra", "ecart"] },
-
-  // ── Hostel Avenue (S through hostel zone) ──────────────────────
-  { id: "himalaya-mess",    name: "Himalaya Mess",               lat: 12.9879, lng: 80.2348, routes: ["hostel", "ecart"] },
-  { id: "ganga-hostel",     name: "Ganga Hostel",                lat: 12.9870, lng: 80.2354, routes: ["hostel", "ecart"] },
-  { id: "tapti-hostel",     name: "Tapti Hostel",                lat: 12.9860, lng: 80.2360, routes: ["hostel", "gajendra", "ecart"] },
-  { id: "saraswathi-hostel",name: "Saraswathi Hostel",           lat: 12.9852, lng: 80.2366, routes: ["hostel", "velachery", "ecart"] },
-
-  // ── Velachery branch ───────────────────────────────────────────
-  { id: "taramani-gh",      name: "Taramani Guest House",        lat: 12.9844, lng: 80.2374, routes: ["velachery", "ecart"] },
-  { id: "velachery-gate",   name: "Velachery Gate",              lat: 12.9832, lng: 80.2388, routes: ["velachery"] },
+  { id: "main-gate",   name: "Main Gate",                       lat: 13.0060118, lng: 80.2418353, routes: ["r1","r2","r4"] },
+  { id: "d1-bonn",     name: "D1 Bonn Avenue",                  lat: 13.0026140, lng: 80.2401673, routes: ["r1","r2","r4"] },
+  { id: "school-bonn", name: "School Bonn Avenue",              lat: 12.9988140, lng: 80.2392483, routes: ["r1","r2","r4"] },
+  { id: "park-bonn",   name: "Park Bonn Avenue",                lat: 12.9956337, lng: 80.2355311, routes: ["r1","r2","r4"] },
+  { id: "post-office", name: "Post Office",                     lat: 12.9935759, lng: 80.2342617, routes: ["r1","r2","r4"] },
+  { id: "gajendra",    name: "Gajendra Circle",                 lat: 12.9917762, lng: 80.2337504, routes: ["r1","r2","r3","r4"] },
+  { id: "hsb",         name: "Humanities and Sciences Block",   lat: 12.9909643, lng: 80.2318796, routes: ["r1","r2","r3"] },
+  { id: "library",     name: "Central Library",                 lat: 12.9912299, lng: 80.2336106, routes: ["r3","r4"] },
+  { id: "cc",          name: "Classroom Complex",               lat: 12.9908964, lng: 80.2303403, routes: ["r1","r2","r3"] },
+  { id: "oat",         name: "Open Air Theatre",                lat: 12.9897203, lng: 80.2331707, routes: ["r3","r4"] },
+  { id: "nac2",        name: "New Academic Complex 2",          lat: 12.9901914, lng: 80.2272461, routes: ["r1","r2","r3"] },
+  { id: "edb",         name: "Engineering Design Block",        lat: 12.9899794, lng: 80.2263928, routes: ["r1","r2","r3"] },
+  { id: "velachery",   name: "Velachery Gate",                  lat: 12.9885641, lng: 80.2233424, routes: ["r1","r2","r3"] },
+  { id: "gymkhana",    name: "Gymkhana",                        lat: 12.9865899, lng: 80.2333454, routes: ["r3","r4"] },
+  { id: "narmada",     name: "Narmada",                         lat: 12.9862811, lng: 80.2348287, routes: ["r3","r4"] },
+  { id: "jamuna",      name: "Jamuna and Ganga",                lat: 12.9867356, lng: 80.2394226, routes: ["r3","r4"] },
 ];
 
-export const NEAREST_STOP_ID = "gajendra-circle";
-export const CAMPUS_CENTER: [number, number] = [12.9889, 80.2355];
+// Stop ID sequence for each route (in service direction).
+export const ROUTE_STOPS: Record<RouteId, string[]> = {
+  r1: ["main-gate","d1-bonn","school-bonn","park-bonn","post-office","gajendra","hsb","cc","nac2","edb","velachery"],
+  r2: ["velachery","edb","nac2","cc","hsb","gajendra","post-office","park-bonn","school-bonn","d1-bonn","main-gate"],
+  r3: ["velachery","edb","nac2","cc","hsb","gajendra","library","oat","gymkhana","narmada","jamuna"],
+  r4: ["jamuna","narmada","gymkhana","oat","library","gajendra","post-office","park-bonn","school-bonn","d1-bonn","main-gate"],
+};
+
+export const NEAREST_STOP_ID = "gajendra";
+
+// Campus bounding box for default fit-to-view.
+export const CAMPUS_BOUNDS: [[number, number], [number, number]] = [
+  [12.9850, 80.2230], // SW
+  [13.0070, 80.2425], // NE
+];
+export const CAMPUS_CENTER: [number, number] = [12.9960, 80.2330];
+
+const STOP_BY_ID = new Map(STOPS.map((s) => [s.id, s]));
+export function getStop(id: string): Stop | undefined {
+  return STOP_BY_ID.get(id);
+}
 
 export function distanceMeters(
   a: [number, number],

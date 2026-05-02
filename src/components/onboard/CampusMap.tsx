@@ -4,12 +4,12 @@ import L from "leaflet";
 import {
   CAMPUS_BOUNDS,
   CAMPUS_CENTER,
-  ROUTE_STOPS,
   STOPS,
-  getStop,
   type Stop,
 } from "@/data/stops";
 import { ROUTES, ROUTE_ORDER, type RouteId } from "@/data/routes";
+import { ROUTE_PATHS, type LL } from "@/data/roads";
+import { useTheme } from "@/components/theme/ThemeProvider";
 
 // ─────────────────── Icons ────────────────────
 function busSvg(color: string) {
@@ -76,8 +76,6 @@ function makeUserIcon() {
 }
 
 // ───────── Path geometry helpers ─────────
-type LL = [number, number];
-
 function pathLengths(path: LL[]) {
   const segs: number[] = [];
   let total = 0;
@@ -121,33 +119,6 @@ function interpolatePingPong(
 
 const BUS_SPEED_MPS = (20 * 1000) / 3600; // 20 km/h ≈ 5.55 m/s
 
-// ───────── OSRM route snapping (cached in-memory) ─────────
-const ROUTE_PATH_CACHE: Partial<Record<RouteId, LL[]>> = {};
-
-async function snapRouteToRoads(routeId: RouteId): Promise<LL[]> {
-  if (ROUTE_PATH_CACHE[routeId]) return ROUTE_PATH_CACHE[routeId]!;
-  const stops = ROUTE_STOPS[routeId].map((id) => getStop(id)!);
-  const fallback: LL[] = stops.map((s) => [s.lat, s.lng]);
-  try {
-    // OSRM expects "lng,lat;lng,lat;..."
-    const coords = stops.map((s) => `${s.lng},${s.lat}`).join(";");
-    const url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error("osrm http " + res.status);
-    const json = (await res.json()) as {
-      routes?: Array<{ geometry: { coordinates: [number, number][] } }>;
-    };
-    const geom = json.routes?.[0]?.geometry?.coordinates;
-    if (!geom || geom.length < 2) throw new Error("no geometry");
-    const path: LL[] = geom.map(([lng, lat]) => [lat, lng]);
-    ROUTE_PATH_CACHE[routeId] = path;
-    return path;
-  } catch {
-    ROUTE_PATH_CACHE[routeId] = fallback;
-    return fallback;
-  }
-}
-
 // ───────── Map effects ─────────
 const FitToCampus = () => {
   const map = useMap();
@@ -170,9 +141,9 @@ interface BusMarker {
 
 export const CampusMap = ({ selectedStopId, onSelectStop }: CampusMapProps) => {
   const [tMs, setTMs] = useState<number>(() => Date.now());
-  const [paths, setPaths] = useState<Partial<Record<RouteId, LL[]>>>({});
   const [userPos, setUserPos] = useState<LL | null>(null);
   const startedAt = useRef<number>(Date.now());
+  const { resolvedTheme } = useTheme();
 
   // Animation tick
   useEffect(() => {
@@ -191,22 +162,8 @@ export const CampusMap = ({ selectedStopId, onSelectStop }: CampusMapProps) => {
     return () => navigator.geolocation.clearWatch(watch);
   }, []);
 
-  // Snap each route to roads via OSRM (with straight-line fallback).
-  useEffect(() => {
-    let cancelled = false;
-    ROUTE_ORDER.forEach((rid) => {
-      // Set straight-line fallback immediately so map is never empty
-      setPaths((p) => (p[rid] ? p : { ...p, [rid]: ROUTE_STOPS[rid].map((id) => {
-        const s = getStop(id)!;
-        return [s.lat, s.lng] as LL;
-      }) }));
-      snapRouteToRoads(rid).then((path) => {
-        if (cancelled) return;
-        setPaths((p) => ({ ...p, [rid]: path }));
-      });
-    });
-    return () => { cancelled = true; };
-  }, []);
+  // Use fixed hand-drawn road geometry — strictly on the three campus roads.
+  const paths = ROUTE_PATHS;
 
   const lengths = useMemo(() => {
     const out: Partial<Record<RouteId, ReturnType<typeof pathLengths>>> = {};
@@ -214,7 +171,7 @@ export const CampusMap = ({ selectedStopId, onSelectStop }: CampusMapProps) => {
       out[r] = pathLengths(paths[r]!);
     });
     return out;
-  }, [paths]);
+  }, []);
 
   // Two buses per route, offset along the route.
   const busSpecs = useMemo(
@@ -241,6 +198,11 @@ export const CampusMap = ({ selectedStopId, onSelectStop }: CampusMapProps) => {
     })
     .filter(Boolean) as BusMarker[];
 
+  const tileUrl =
+    resolvedTheme === "dark"
+      ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+      : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+
   return (
     <MapContainer
       center={CAMPUS_CENTER}
@@ -254,8 +216,9 @@ export const CampusMap = ({ selectedStopId, onSelectStop }: CampusMapProps) => {
       <FitToCampus />
 
       <TileLayer
+        key={resolvedTheme}
         attribution='&copy; OpenStreetMap &copy; CARTO'
-        url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+        url={tileUrl}
       />
 
       {ROUTE_ORDER.map((rid) =>
@@ -265,8 +228,8 @@ export const CampusMap = ({ selectedStopId, onSelectStop }: CampusMapProps) => {
             positions={paths[rid]!}
             pathOptions={{
               color: ROUTES[rid].hex,
-              weight: 4,
-              opacity: 0.7,
+              weight: 5,
+              opacity: 0.85,
               lineCap: "round",
               lineJoin: "round",
             }}

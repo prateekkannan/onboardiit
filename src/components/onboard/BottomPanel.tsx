@@ -106,12 +106,12 @@ export const BottomPanel = ({
           if (!isDragging && Math.abs(dragY) < 4) setCollapsed((c) => !c);
         }}
       >
-        <div className="h-1.5 w-12 rounded-full bg-black/30 transition-all" aria-hidden />
+        <div className="h-1.5 w-12 rounded-full bg-foreground/30 transition-all" aria-hidden />
         {collapsed && (
-          <div className="mt-2 flex items-center gap-2 text-black animate-fade-in">
+          <div className="mt-2 flex items-center gap-2 text-foreground animate-fade-in">
             <ChevronUp className="h-4 w-4" />
             <span className="text-sm font-bold">{stop.name}</span>
-            <span className="text-xs font-medium text-black/60">
+            <span className="text-xs font-medium text-foreground/60">
               · {incoming.length} upcoming
             </span>
           </div>
@@ -120,7 +120,7 @@ export const BottomPanel = ({
 
       <div className="mt-1 flex items-end justify-between gap-3">
         <div>
-          <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-black/60">
+          <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-foreground/60">
             <MapPin className="h-3 w-3" />
             {selectedStop
               ? "Selected stop"
@@ -128,7 +128,7 @@ export const BottomPanel = ({
               ? "Nearest stop"
               : "Nearest stop · default"}
           </p>
-          <h1 className="mt-1 text-2xl font-extrabold leading-tight text-black">
+          <h1 className="mt-1 text-2xl font-extrabold leading-tight text-foreground">
             {stop.name}
           </h1>
         </div>
@@ -145,7 +145,7 @@ export const BottomPanel = ({
           {selectedStop && onClearSelected && (
             <button
               onClick={onClearSelected}
-              className="ml-1 rounded-full bg-black/10 p-1 text-black/70 hover:bg-black/15"
+              className="ml-1 rounded-full bg-foreground/10 p-1 text-foreground/70 hover:bg-foreground/15"
               aria-label="Clear selection"
             >
               <X className="h-3.5 w-3.5" />
@@ -156,7 +156,7 @@ export const BottomPanel = ({
 
       <div className="mt-4">
         {incoming.length === 0 ? (
-          <p className="rounded-2xl bg-black/5 px-4 py-6 text-center text-sm font-medium text-black/60">
+          <p className="rounded-2xl bg-foreground/5 px-4 py-6 text-center text-sm font-medium text-foreground/60">
             No buses arriving soon at this stop.
           </p>
         ) : (

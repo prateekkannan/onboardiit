@@ -4,6 +4,7 @@ import { BottomPanel } from "@/components/onboard/BottomPanel";
 import { BottomNav, type Screen } from "@/components/onboard/BottomNav";
 import { SchedulePage } from "@/components/onboard/SchedulePage";
 import { TopBar } from "@/components/onboard/TopBar";
+import { AskPage } from "@/components/onboard/AskPage";
 import type { Stop } from "@/data/stops";
 
 const Index = () => {
@@ -23,8 +24,10 @@ const Index = () => {
             onClearSelected={() => setSelectedStop(null)}
           />
         </div>
-      ) : (
+      ) : screen === "schedule" ? (
         <SchedulePage />
+      ) : (
+        <AskPage />
       )}
 
       <TopBar />

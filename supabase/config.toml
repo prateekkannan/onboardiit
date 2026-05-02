@@ -1,0 +1,4 @@
+project_id = "mryataponrwwzfjushji"
+
+[functions.ask-iitm]
+verify_jwt = false

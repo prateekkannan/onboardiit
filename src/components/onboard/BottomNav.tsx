@@ -32,7 +32,12 @@ export const BottomNav = ({ active, onChange }: BottomNavProps) => {
           return (
             <button
               key={t.id}
-              onClick={() => onChange(t.id)}
+              onClick={() => {
+                if (typeof navigator !== "undefined" && navigator.vibrate) {
+                  navigator.vibrate(50);
+                }
+                onChange(t.id);
+              }}
               className={`flex items-center gap-2 rounded-full px-3.5 py-2 text-sm font-semibold transition-colors ${
                 isActive
                   ? "bg-primary text-primary-foreground"

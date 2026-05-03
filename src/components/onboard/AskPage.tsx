@@ -10,6 +10,41 @@ type Msg = { role: "user" | "assistant"; content: string };
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ask-iitm`;
 
+const ROUTE_PILL_STYLE: Record<string, { bg: string; fg: string }> = {
+  "Route 1": { bg: "#03AED2", fg: "#FFFFFF" },
+  "Route 2": { bg: "#D12052", fg: "#FFFFFF" },
+  "Route 3": { bg: "#F8DE22", fg: "#000000" },
+  "Route 4": { bg: "#F45B26", fg: "#FFFFFF" },
+  "Route 5": { bg: "#A7F432", fg: "#000000" },
+  "Route 6": { bg: "#6600FF", fg: "#FFFFFF" },
+};
+
+const renderWithRoutePills = (text: string) => {
+  const parts = text.split(/(Route\s[1-6])/g);
+  return parts.map((part, i) => {
+    const key = part.replace(/\s+/, " ");
+    const style = ROUTE_PILL_STYLE[key];
+    if (style) {
+      return (
+        <span
+          key={i}
+          className="mx-0.5 inline-flex items-center rounded-full px-2 py-0.5 text-[12px] font-bold align-baseline"
+          style={{ backgroundColor: style.bg, color: style.fg }}
+        >
+          {part}
+        </span>
+      );
+    }
+    return <span key={i}>{part}</span>;
+  });
+};
+
+const SUGGESTED_CHIPS = [
+  "How do I get to the library?",
+  "When is the last bus tonight?",
+  "Nearest stop to OAT?",
+];
+
 export const AskPage = () => {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
@@ -25,7 +60,11 @@ export const AskPage = () => {
   }, [messages, loading]);
 
   const send = async () => {
-    const text = input.trim();
+    await sendText(input);
+  };
+
+  const sendText = async (raw: string) => {
+    const text = raw.trim();
     if (!text || loading) return;
     setError(null);
     setInput("");
@@ -38,6 +77,9 @@ export const AskPage = () => {
     const nowMin = getDemoNowMinutes();
     const hh = String(Math.floor(nowMin / 60)).padStart(2, "0");
     const mm = String(nowMin % 60).padStart(2, "0");
+    const realNow = new Date();
+    const dayName = realNow.toLocaleDateString("en-US", { weekday: "long" });
+    const dateStr = realNow.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
     const arrivalsByStop = STOPS.map((s) => {
       const next3 = upcomingArrivalsAt(s.id, nowMin, 90).slice(0, 3);
       const lines = next3.map(
@@ -45,7 +87,7 @@ export const AskPage = () => {
       );
       return `• ${s.name}: ${lines.length ? lines.join(" | ") : "no buses in next 90 min"}`;
     }).join("\n");
-    const liveContext = `LIVE TRANSIT CONTEXT\nCurrent time: ${hh}:${mm}\nHeadway: 20 min on every route.\nRoutes: ${ROUTE_ORDER.map((r) => `${ROUTES[r].name} = ${ROUTES[r].direction}`).join("; ")}\n\nNext arrivals at each stop:\n${arrivalsByStop}`;
+    const liveContext = `LIVE TRANSIT CONTEXT\nToday: ${dayName}, ${dateStr}\nCurrent time: ${hh}:${mm}\nService hours: first bus ~06:15, last bus ~21:35.\nHeadway: 20 min on every route.\nRoutes: ${ROUTE_ORDER.map((r) => `${ROUTES[r].name} = ${ROUTES[r].direction}`).join("; ")}\n\nNext arrivals at each stop:\n${arrivalsByStop}`;
 
     let assistantSoFar = "";
     const upsertAssistant = (chunk: string) => {
@@ -143,17 +185,17 @@ export const AskPage = () => {
       >
         <div className="mx-auto flex max-w-2xl flex-col gap-3">
           {messages.length === 0 && !loading && (
-            <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {[
-                "I'm at CLT, how do I get to Jamuna hostel?",
-                "Closest stop to Central Library?",
-                "Next bus from Gajendra Circle to Velachery Gate?",
-                "How do I reach Chemplast Stadium from Main Gate?",
-              ].map((q) => (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {SUGGESTED_CHIPS.map((q) => (
                 <button
                   key={q}
-                  onClick={() => setInput(q)}
-                  className="rounded-2xl border border-border bg-card px-4 py-3 text-left text-sm font-medium text-foreground transition-all hover:scale-[1.01] hover:bg-muted"
+                  onClick={() => sendText(q)}
+                  className="rounded-full border border-border px-3.5 py-2 text-[13px] font-medium text-foreground shadow-sm transition-all hover:scale-[1.02] active:scale-95"
+                  style={{
+                    background: "hsl(var(--card) / 0.6)",
+                    backdropFilter: "blur(16px) saturate(180%)",
+                    WebkitBackdropFilter: "blur(16px) saturate(180%)",
+                  }}
                 >
                   {q}
                 </button>
@@ -188,7 +230,8 @@ export const AskPage = () => {
                     <span className="h-2 w-2 animate-pulse rounded-full bg-foreground/50 [animation-delay:120ms]" />
                     <span className="h-2 w-2 animate-pulse rounded-full bg-foreground/50 [animation-delay:240ms]" />
                   </span>
-                )}
+                ) }
+                {m.content && m.role === "assistant" ? renderWithRoutePills(m.content) : null}
               </div>
             </div>
           ))}

@@ -1,4 +1,5 @@
-import logo from "@/assets/onboard-logo.png";
+import logoLight from "@/assets/onboard-logo-light.png";
+import logoDark from "@/assets/onboard-logo-dark.png";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -17,7 +18,7 @@ export const TopBar = () => {
           color: dark ? "white" : "black",
         }}
       >
-        <img src={logo} alt="Onboard logo" className="h-5 w-5" />
+        <img src={dark ? logoDark : logoLight} alt="Onboard logo" className="h-5 w-5 object-contain" />
         <span className="text-sm tracking-tight">
           <span className="font-extrabold">Onboard</span>
           <span className="mx-1.5 opacity-50">|</span>

@@ -10,35 +10,25 @@ import {
 import { ROUTES, ROUTE_ORDER, type RouteId } from "@/data/routes";
 import { ROUTE_PATHS, type LL } from "@/data/roads";
 import { useTheme } from "@/components/theme/ThemeProvider";
+import stopIconLight from "@/assets/stop-icon-light.png";
+import stopIconDark from "@/assets/stop-icon-dark.png";
 
 // ─────────────────── Icons ────────────────────
-function busSvg(color: string) {
-  return `
-    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-      <rect x="4" y="5" width="16" height="12" rx="2.5" fill="${color}" stroke="white"/>
-      <path d="M4 11h16"/>
-      <circle cx="8" cy="18" r="1.4" fill="white" stroke="white"/>
-      <circle cx="16" cy="18" r="1.4" fill="white" stroke="white"/>
-    </svg>`;
-}
-
-function makeStopIcon(routeIds: RouteId[], active: boolean) {
-  const primary = ROUTES[routeIds[0]].hex;
-  const size = active ? 36 : 28;
+function makeStopIcon(active: boolean, dark: boolean) {
+  const size = active ? 38 : 28;
+  const src = dark ? stopIconDark : stopIconLight;
   return L.divIcon({
     className: "leaflet-stop-pin",
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
     html: `
       <div class="onboard-stop ${active ? "is-active" : ""}" style="
-        width:${size}px;height:${size}px;border-radius:9999px;
-        background:white;
+        width:${size}px;height:${size}px;
         display:flex;align-items:center;justify-content:center;
-        border:2px solid ${primary};
-        box-shadow:0 3px 10px rgba(0,0,0,0.18);
         transition: all 200ms ease;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25));
       ">
-        ${busSvg(primary)}
+        <img src="${src}" style="width:100%;height:100%;object-fit:contain;display:block;" alt="stop"/>
       </div>
     `,
   });
@@ -241,8 +231,15 @@ export const CampusMap = ({ selectedStopId, onSelectStop }: CampusMapProps) => {
         <Marker
           key={s.id}
           position={[s.lat, s.lng]}
-          icon={makeStopIcon(s.routes, selectedStopId === s.id)}
-          eventHandlers={{ click: () => onSelectStop?.(s) }}
+          icon={makeStopIcon(selectedStopId === s.id, resolvedTheme === "dark")}
+          eventHandlers={{
+            click: () => {
+              if (typeof navigator !== "undefined" && navigator.vibrate) {
+                navigator.vibrate(25);
+              }
+              onSelectStop?.(s);
+            },
+          }}
         />
       ))}
 

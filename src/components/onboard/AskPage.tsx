@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Send, Sparkles } from "lucide-react";
 import { BOTTOM_NAV_HEIGHT } from "./BottomNav";
+import { STOPS } from "@/data/stops";
+import { ROUTES, ROUTE_ORDER } from "@/data/routes";
+import { upcomingArrivalsAt } from "@/data/schedule";
+import { getDemoNowMinutes } from "@/lib/onboard";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
@@ -30,6 +34,19 @@ export const AskPage = () => {
     setMessages(next);
     setLoading(true);
 
+    // Build live transit context (current time + next arrivals per stop)
+    const nowMin = getDemoNowMinutes();
+    const hh = String(Math.floor(nowMin / 60)).padStart(2, "0");
+    const mm = String(nowMin % 60).padStart(2, "0");
+    const arrivalsByStop = STOPS.map((s) => {
+      const next3 = upcomingArrivalsAt(s.id, nowMin, 90).slice(0, 3);
+      const lines = next3.map(
+        (a) => `${ROUTES[a.routeId].name} (${ROUTES[a.routeId].direction}) at ${a.arrivalTime} (${a.minutesAway} min)`,
+      );
+      return `• ${s.name}: ${lines.length ? lines.join(" | ") : "no buses in next 90 min"}`;
+    }).join("\n");
+    const liveContext = `LIVE TRANSIT CONTEXT\nCurrent time: ${hh}:${mm}\nHeadway: 20 min on every route.\nRoutes: ${ROUTE_ORDER.map((r) => `${ROUTES[r].name} = ${ROUTES[r].direction}`).join("; ")}\n\nNext arrivals at each stop:\n${arrivalsByStop}`;
+
     let assistantSoFar = "";
     const upsertAssistant = (chunk: string) => {
       assistantSoFar += chunk;
@@ -51,7 +68,7 @@ export const AskPage = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: next }),
+        body: JSON.stringify({ messages: next, liveContext }),
       });
 
       if (!resp.ok || !resp.body) {

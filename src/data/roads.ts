@@ -37,30 +37,38 @@ export const BONN_AVENUE: LL[] = [
 ];
 
 // ───────── Alumni Avenue (Gajendra → Velachery Gate) ─────────
-// Runs west through the academic zone. Library + HSB + OAT sit on short
-// spurs off Alumni; we route through them by including their coords as
-// part of the polyline so the visible line still follows Alumni cleanly.
+// Pure academic strip. Goes Gajendra → HSB → CC → NAC2 → EDB →
+// Velachery. Library and OAT are NOT on Alumni — they are reached via
+// a separate spur (LIBRARY_OAT_SPUR) used only by hostel-bound routes.
 export const ALUMNI_AVENUE: LL[] = [
   s("gajendra"),
-  s("library"),
+  [12.9912, 80.2330],
   s("hsb"),
   [12.9909, 80.2310],
   s("cc"),
-  [12.9904, 80.2295],
-  s("oat"),
-  [12.9902, 80.2285],
+  [12.9905, 80.2288],
   s("nac2"),
   s("edb"),
   [12.9893, 80.2250],
   s("velachery"),
 ];
 
-// ───────── Hostel Avenue (Gajendra → Jamuna & Ganga) ─────────
-// Heads south to Gymkhana, then east along the hostel strip.
-export const HOSTEL_AVENUE: LL[] = [
+// ───────── Library / OAT spur (Gajendra → OAT) ─────────
+// Short branch south from Gajendra past the Central Library down to
+// the Open Air Theatre. Used by hostel-bound routes (r3, r4, r5, r6)
+// which do NOT serve the academic strip beyond HSB on this leg.
+export const LIBRARY_OAT_SPUR: LL[] = [
   s("gajendra"),
-  [12.9895, 80.2335],
-  [12.9878, 80.2334],
+  s("library"),
+  [12.9905, 80.2334],
+  s("oat"),
+];
+
+// ───────── Hostel Avenue (OAT → Jamuna & Ganga) ─────────
+// From OAT south to Gymkhana, then east along the hostel strip.
+export const HOSTEL_AVENUE: LL[] = [
+  s("oat"),
+  [12.9882, 80.2332],
   s("gymkhana"),
   s("narmada"),
   [12.9865, 80.2370],
@@ -74,16 +82,16 @@ const rev = (p: LL[]): LL[] => [...p].reverse();
 // (in correct service direction). This keeps every drawn line strictly
 // on these three roads.
 export const ROUTE_PATHS: Record<RouteId, LL[]> = {
-  // Main Gate → Velachery (Bonn → Alumni)
+  // Main Gate → Velachery (Bonn → Alumni; no library, no OAT)
   r1: [...BONN_AVENUE, ...ALUMNI_AVENUE.slice(1)],
   // Velachery → Main Gate (reverse)
   r2: [...rev(ALUMNI_AVENUE), ...rev(BONN_AVENUE).slice(1)],
-  // Velachery → Hostel (Alumni reversed to Gajendra, then Hostel)
-  r3: [...rev(ALUMNI_AVENUE), ...HOSTEL_AVENUE.slice(1)],
-  // Hostel → Main Gate (Hostel reversed to Gajendra, then Bonn reversed)
-  r4: [...rev(HOSTEL_AVENUE), ...rev(BONN_AVENUE).slice(1)],
-  // Hostel → Velachery (Hostel reversed to Gajendra, then Alumni)
-  r5: [...rev(HOSTEL_AVENUE), ...ALUMNI_AVENUE.slice(1)],
-  // Main Gate → Hostel (Bonn → Hostel)
-  r6: [...BONN_AVENUE, ...HOSTEL_AVENUE.slice(1)],
+  // Velachery → Hostel: academic strip back to Gajendra, then library/OAT spur, then Hostel
+  r3: [...rev(ALUMNI_AVENUE), ...LIBRARY_OAT_SPUR.slice(1), ...HOSTEL_AVENUE.slice(1)],
+  // Hostel → Main Gate: Hostel reversed to OAT, library spur reversed to Gajendra, then Bonn reversed
+  r4: [...rev(HOSTEL_AVENUE), ...rev(LIBRARY_OAT_SPUR).slice(1), ...rev(BONN_AVENUE).slice(1)],
+  // Hostel → Velachery: Hostel reversed to OAT, spur reversed to Gajendra, then Alumni
+  r5: [...rev(HOSTEL_AVENUE), ...rev(LIBRARY_OAT_SPUR).slice(1), ...ALUMNI_AVENUE.slice(1)],
+  // Main Gate → Hostel: Bonn → library/OAT spur → Hostel
+  r6: [...BONN_AVENUE, ...LIBRARY_OAT_SPUR.slice(1), ...HOSTEL_AVENUE.slice(1)],
 };

@@ -224,14 +224,15 @@ export const AskPage = () => {
                     : undefined
                 }
               >
-                {m.content || (
+                {m.content ? (
+                  m.role === "assistant" ? renderWithRoutePills(m.content) : m.content
+                ) : (
                   <span className="inline-flex gap-1">
                     <span className="h-2 w-2 animate-pulse rounded-full bg-foreground/50" />
                     <span className="h-2 w-2 animate-pulse rounded-full bg-foreground/50 [animation-delay:120ms]" />
                     <span className="h-2 w-2 animate-pulse rounded-full bg-foreground/50 [animation-delay:240ms]" />
                   </span>
-                ) }
-                {m.content && m.role === "assistant" ? renderWithRoutePills(m.content) : null}
+                )}
               </div>
             </div>
           ))}

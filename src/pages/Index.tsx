@@ -32,6 +32,12 @@ const Index = () => {
 
       <TopBar />
       <BottomNav active={screen} onChange={setScreen} />
+      <div
+        className="pointer-events-none fixed bottom-1 left-2 z-[800] select-none text-[9px] leading-none text-muted-foreground/60"
+        aria-label="copyright"
+      >
+        © Prateek Kannan 2026
+      </div>
     </div>
   );
 };

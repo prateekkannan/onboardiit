@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Send, Sparkles } from "lucide-react";
+import { Mic, Send, Sparkles } from "lucide-react";
 import { BOTTOM_NAV_HEIGHT } from "./BottomNav";
 import { STOPS } from "@/data/stops";
 import { ROUTES, ROUTE_ORDER } from "@/data/routes";
@@ -51,6 +51,42 @@ export const AskPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [recording, setRecording] = useState(false);
+  const recogRef = useRef<any>(null);
+  const activeRouteColor = ROUTES[ROUTE_ORDER[0]].hex;
+
+  const toggleRecording = () => {
+    const SR =
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition;
+    if (!SR) {
+      setError("Voice input isn't supported in this browser.");
+      return;
+    }
+    if (recording) {
+      recogRef.current?.stop();
+      return;
+    }
+    const r = new SR();
+    r.lang = "en-IN";
+    r.interimResults = true;
+    r.continuous = false;
+    let finalText = "";
+    r.onresult = (ev: any) => {
+      let interim = "";
+      for (let i = ev.resultIndex; i < ev.results.length; i++) {
+        const t = ev.results[i][0].transcript;
+        if (ev.results[i].isFinal) finalText += t;
+        else interim += t;
+      }
+      setInput((finalText + interim).trim());
+    };
+    r.onerror = () => setRecording(false);
+    r.onend = () => setRecording(false);
+    recogRef.current = r;
+    setRecording(true);
+    r.start();
+  };
 
   useEffect(() => {
     scrollRef.current?.scrollTo({
@@ -284,6 +320,23 @@ export const AskPage = () => {
             disabled={loading}
             className="flex-1 bg-transparent px-4 py-2 text-[15px] text-foreground placeholder:text-muted-foreground focus:outline-none"
           />
+          <button
+            type="button"
+            onClick={toggleRecording}
+            aria-label={recording ? "Stop recording" : "Start voice input"}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-all hover:scale-105 active:scale-95"
+            style={
+              recording
+                ? {
+                    backgroundColor: activeRouteColor,
+                    color: "#fff",
+                    animation: "mic-pulse 1.4s ease-out infinite",
+                  }
+                : { background: "hsl(var(--muted))", color: "hsl(var(--foreground))" }
+            }
+          >
+            <Mic className="h-4 w-4" />
+          </button>
           <button
             type="submit"
             disabled={!input.trim() || loading}

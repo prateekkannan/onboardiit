@@ -5,11 +5,13 @@ import { BottomNav, type Screen } from "@/components/onboard/BottomNav";
 import { SchedulePage } from "@/components/onboard/SchedulePage";
 import { TopBar } from "@/components/onboard/TopBar";
 import { AskPage } from "@/components/onboard/AskPage";
+import { MapFloatingControls } from "@/components/onboard/MapFloatingControls";
 import type { Stop } from "@/data/stops";
 
 const Index = () => {
   const [screen, setScreen] = useState<Screen>("home");
   const [selectedStop, setSelectedStop] = useState<Stop | null>(null);
+  const [recenterTrigger, setRecenterTrigger] = useState(0);
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-background">
@@ -18,7 +20,9 @@ const Index = () => {
           <CampusMap
             selectedStopId={selectedStop?.id ?? null}
             onSelectStop={setSelectedStop}
+            recenterTrigger={recenterTrigger}
           />
+          <MapFloatingControls onRecenter={() => setRecenterTrigger((n) => n + 1)} />
           <BottomPanel
             selectedStop={selectedStop}
             onClearSelected={() => setSelectedStop(null)}

@@ -176,6 +176,9 @@ export const BottomPanel = ({
                   busName={b.busName}
                   busType={b.busType}
                   arrivalTime={b.arrivalTime}
+                  originStop={ROUTES[b.routeId].direction.split("→")[0]?.trim()}
+                  destinationStop={ROUTES[b.routeId].direction.split("→")[1]?.trim()}
+                  departureTime={b.tripStartTime}
                 />
               </div>
             ))}

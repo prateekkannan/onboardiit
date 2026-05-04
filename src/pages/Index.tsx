@@ -5,6 +5,7 @@ import { BottomNav, type Screen } from "@/components/onboard/BottomNav";
 import { SchedulePage } from "@/components/onboard/SchedulePage";
 import { TopBar } from "@/components/onboard/TopBar";
 import { AskPage } from "@/components/onboard/AskPage";
+import { NearbyPage } from "@/components/onboard/NearbyPage";
 import { MapFloatingControls } from "@/components/onboard/MapFloatingControls";
 import type { Stop } from "@/data/stops";
 
@@ -30,6 +31,8 @@ const Index = () => {
         </div>
       ) : screen === "schedule" ? (
         <SchedulePage />
+      ) : screen === "nearby" ? (
+        <NearbyPage />
       ) : (
         <AskPage />
       )}

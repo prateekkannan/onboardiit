@@ -1,6 +1,6 @@
-import { Map as MapIcon, CalendarClock, Sparkles } from "lucide-react";
+import { Map as MapIcon, CalendarClock, Sparkles, Compass } from "lucide-react";
 
-export type Screen = "home" | "schedule" | "ask";
+export type Screen = "home" | "schedule" | "nearby" | "ask";
 
 interface BottomNavProps {
   active: Screen;
@@ -18,6 +18,7 @@ export const BottomNav = ({ active, onChange }: BottomNavProps) => {
       label: "Schedule",
       icon: <CalendarClock className="h-5 w-5" />,
     },
+    { id: "nearby", label: "Nearby", icon: <Compass className="h-5 w-5" /> },
     { id: "ask", label: "Ask", icon: <Sparkles className="h-5 w-5" /> },
   ];
 

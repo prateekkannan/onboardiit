@@ -121,6 +121,8 @@ const FitToCampus = () => {
 interface CampusMapProps {
   selectedStopId?: string | null;
   onSelectStop?: (s: Stop) => void;
+  /** Increment to trigger a smooth re-centre on the user's nearest stop. */
+  recenterTrigger?: number;
 }
 
 interface BusMarker {
@@ -129,7 +131,24 @@ interface BusMarker {
   pos: LL;
 }
 
-export const CampusMap = ({ selectedStopId, onSelectStop }: CampusMapProps) => {
+function RecenterOnTrigger({
+  trigger,
+  target,
+}: {
+  trigger: number | undefined;
+  target: LL | null;
+}) {
+  const map = useMap();
+  const last = useRef<number | undefined>(trigger);
+  useEffect(() => {
+    if (trigger === undefined || trigger === last.current) return;
+    last.current = trigger;
+    if (target) map.flyTo(target, 17, { duration: 0.9 });
+  }, [trigger, target, map]);
+  return null;
+}
+
+export const CampusMap = ({ selectedStopId, onSelectStop, recenterTrigger }: CampusMapProps) => {
   const [tMs, setTMs] = useState<number>(() => Date.now());
   const [userPos, setUserPos] = useState<LL | null>(null);
   const startedAt = useRef<number>(Date.now());
@@ -204,6 +223,24 @@ export const CampusMap = ({ selectedStopId, onSelectStop }: CampusMapProps) => {
       style={{ width: "100%", height: "100%" }}
     >
       <FitToCampus />
+      <RecenterOnTrigger
+        trigger={recenterTrigger}
+        target={
+          userPos
+            ? (() => {
+                let best: Stop = STOPS[0];
+                let bestD = Infinity;
+                for (const s of STOPS) {
+                  const dx = (s.lng - userPos[1]) * 108400;
+                  const dy = (s.lat - userPos[0]) * 111130;
+                  const d = dx * dx + dy * dy;
+                  if (d < bestD) { bestD = d; best = s; }
+                }
+                return [best.lat, best.lng] as LL;
+              })()
+            : null
+        }
+      />
 
       <TileLayer
         key={resolvedTheme}

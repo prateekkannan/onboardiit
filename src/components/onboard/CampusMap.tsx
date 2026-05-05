@@ -12,23 +12,37 @@ import { ROUTE_PATHS, type LL } from "@/data/roads";
 import { useTheme } from "@/components/theme/ThemeProvider";
 import stopIconLight from "@/assets/stop-icon-light.png";
 import stopIconDark from "@/assets/stop-icon-dark.png";
+import { useFavorites } from "@/hooks/useFavorites";
 
 // ─────────────────── Icons ────────────────────
-function makeStopIcon(active: boolean, dark: boolean) {
-  const size = active ? 38 : 28;
+function makeStopIcon(active: boolean, dark: boolean, favorite: boolean, popKey?: number) {
+  const baseSize = favorite ? 36 : 28;
+  const size = active ? Math.max(baseSize, 40) : baseSize;
   const src = dark ? stopIconDark : stopIconLight;
+  const heart = popKey
+    ? `<span class="onboard-heart-pop" key="${popKey}">
+         <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+           <path d="M12 21s-7-4.35-9.5-8.5C.7 9.4 2.3 6 5.5 6c1.9 0 3.4 1 4.5 2.6C11.1 7 12.6 6 14.5 6 17.7 6 19.3 9.4 17.5 12.5 19 16.65 12 21 12 21z"/>
+         </svg>
+       </span>`
+    : "";
+  const star = favorite
+    ? `<span style="position:absolute;top:-2px;right:-2px;width:12px;height:12px;border-radius:9999px;background:#ff3b6b;border:1.5px solid white;box-shadow:0 1px 3px rgba(0,0,0,0.3);"></span>`
+    : "";
   return L.divIcon({
     className: "leaflet-stop-pin",
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
     html: `
-      <div class="onboard-stop ${active ? "is-active" : ""}" style="
+      <div class="onboard-stop ${active ? "is-active" : ""}" style="position:relative;
         width:${size}px;height:${size}px;
         display:flex;align-items:center;justify-content:center;
         transition: all 200ms ease;
         filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25));
       ">
         <img src="${src}" style="width:100%;height:100%;object-fit:contain;display:block;" alt="stop"/>
+        ${star}
+        ${heart}
       </div>
     `,
   });
@@ -153,6 +167,9 @@ export const CampusMap = ({ selectedStopId, onSelectStop, recenterTrigger }: Cam
   const [userPos, setUserPos] = useState<LL | null>(null);
   const startedAt = useRef<number>(Date.now());
   const { resolvedTheme } = useTheme();
+  const { isFavorite, toggle } = useFavorites();
+  const [popMap, setPopMap] = useState<Record<string, number>>({});
+  const tapRef = useRef<Record<string, number>>({});
 
   // Animation tick
   useEffect(() => {
@@ -268,9 +285,33 @@ export const CampusMap = ({ selectedStopId, onSelectStop, recenterTrigger }: Cam
         <Marker
           key={s.id}
           position={[s.lat, s.lng]}
-          icon={makeStopIcon(selectedStopId === s.id, resolvedTheme === "dark")}
+          icon={makeStopIcon(
+            selectedStopId === s.id,
+            resolvedTheme === "dark",
+            isFavorite(s.id),
+            popMap[s.id],
+          )}
           eventHandlers={{
             click: () => {
+              const now = Date.now();
+              const last = tapRef.current[s.id] ?? 0;
+              if (now - last < 320) {
+                // Double-tap → toggle favorite with stronger haptic + heart pulse.
+                tapRef.current[s.id] = 0;
+                const added = toggle(s.id);
+                if (added && typeof navigator !== "undefined" && navigator.vibrate) {
+                  navigator.vibrate([15, 40, 25]);
+                }
+                setPopMap((m) => ({ ...m, [s.id]: now }));
+                window.setTimeout(() => {
+                  setPopMap((m) => {
+                    const { [s.id]: _, ...rest } = m;
+                    return rest;
+                  });
+                }, 750);
+                return;
+              }
+              tapRef.current[s.id] = now;
               if (typeof navigator !== "undefined" && navigator.vibrate) {
                 navigator.vibrate(25);
               }

@@ -139,6 +139,20 @@ All colors MUST be HSL.
     100% { box-shadow: 0 0 0 0 transparent; opacity: 1; }
   }
 
+  @keyframes heart-pop {
+    0% { transform: translate(-50%, -50%) scale(0.4); opacity: 0; }
+    40% { transform: translate(-50%, -130%) scale(1.2); opacity: 1; }
+    100% { transform: translate(-50%, -220%) scale(1); opacity: 0; }
+  }
+  .onboard-heart-pop {
+    position: absolute;
+    left: 50%; top: 50%;
+    pointer-events: none;
+    animation: heart-pop 700ms ease-out forwards;
+    color: #ff3b6b;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+  }
+
   @keyframes slide-up-in {
     0% { transform: translate(-50%, 100%); opacity: 0; }
     100% { transform: translate(-50%, 0); opacity: 1; }

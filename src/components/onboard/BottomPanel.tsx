@@ -26,6 +26,21 @@ export const BottomPanel = ({
   const { stop: geoStop, source } = useNearestStop();
   const stop = selectedStop ?? geoStop;
 
+  // Live wall-clock time, updating every minute.
+  const [clock, setClock] = useState<string>(() => {
+    const d = new Date();
+    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  });
+  useEffect(() => {
+    const tick = () => {
+      const d = new Date();
+      setClock(d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
+    };
+    tick();
+    const id = window.setInterval(tick, 30_000);
+    return () => window.clearInterval(id);
+  }, []);
+
   const sheetRef = useRef<HTMLDivElement | null>(null);
   const [sheetH, setSheetH] = useState(360);
   const [collapsed, setCollapsed] = useState(false);
@@ -132,7 +147,15 @@ export const BottomPanel = ({
             {stop.name}
           </h1>
         </div>
-        <div className="flex shrink-0 items-center gap-2 pb-1.5">
+        <div className="flex shrink-0 flex-col items-end gap-1 pb-1.5">
+          <span
+            className="font-medium tabular-nums text-foreground/50"
+            style={{ fontSize: "11px" }}
+            aria-label="Current time"
+          >
+            {clock}
+          </span>
+          <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5">
             {stopRouteColors.map((c, i) => (
               <span
@@ -151,6 +174,7 @@ export const BottomPanel = ({
               <X className="h-3.5 w-3.5" />
             </button>
           )}
+          </div>
         </div>
       </div>
 

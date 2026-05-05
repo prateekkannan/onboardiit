@@ -109,6 +109,7 @@ export const NEARBY: Record<string, Landmark[]> = {
     A("Seminar Hall", 2),
     D("Computer Centre", 3),
     D("Sophisticated Analytical Instruments Facility", 3),
+    D("PG Senapathy Centre", 3),
   ],
   "cc": [
     D("Classroom Complex CRC Raman and Ramanujan blocks", 1),

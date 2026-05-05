@@ -14,6 +14,8 @@ import {
   Check,
 } from "lucide-react";
 import { STOPS, getStop } from "@/data/stops";
+import { useFavorites } from "@/hooks/useFavorites";
+import { Heart } from "lucide-react";
 import { ROUTES } from "@/data/routes";
 import { NEARBY, CATEGORY_ORDER, STOP_HEADER_ROUTE, type Landmark, type LandmarkCategory } from "@/data/nearby";
 import { useNearestStop } from "@/hooks/useNearestStop";
@@ -42,6 +44,7 @@ export const NearbyPage = () => {
   const [stopId, setStopId] = useState<string>(nearest.id);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const { favorites } = useFavorites();
 
   // Sync once when geo resolves and user hasn't manually changed.
   const stop = getStop(stopId) ?? nearest;
@@ -89,6 +92,36 @@ export const NearbyPage = () => {
             aria-hidden
           />
           <div className="relative z-[70] mx-5 mt-3 max-h-80 overflow-y-auto rounded-2xl border border-border bg-card shadow-lg">
+            {favorites.length > 0 && (
+              <>
+                <div className="px-4 pb-1 pt-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Saved
+                </div>
+                {favorites
+                  .map((id) => STOPS.find((s) => s.id === id))
+                  .filter((s): s is typeof STOPS[number] => Boolean(s))
+                  .map((s) => {
+                    const sel = s.id === stop.id;
+                    return (
+                      <button
+                        key={`fav-${s.id}`}
+                        onClick={() => { setStopId(s.id); setPickerOpen(false); }}
+                        className={`flex w-full items-center justify-between px-4 py-2.5 text-left text-sm transition-colors hover:bg-muted ${sel ? "font-bold text-foreground" : "text-foreground"}`}
+                      >
+                        <span className="flex items-center gap-2">
+                          <Heart className="h-3.5 w-3.5 fill-current text-[#ff3b6b]" />
+                          {s.name}
+                        </span>
+                        {sel && <Check className="h-4 w-4" />}
+                      </button>
+                    );
+                  })}
+                <div className="my-1 border-t border-border" />
+                <div className="px-4 pb-1 pt-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  All stops
+                </div>
+              </>
+            )}
             {STOPS.map((s) => {
               const sel = s.id === stop.id;
               return (

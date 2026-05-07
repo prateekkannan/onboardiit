@@ -14,20 +14,7 @@ const Index = () => {
   const [selectedStop, setSelectedStop] = useState<Stop | null>(null);
   const [recenterTrigger, setRecenterTrigger] = useState(0);
 
-  // Global subtle haptics on every button tap.
-  useEffect(() => {
-    if (typeof navigator === "undefined" || !navigator.vibrate) return;
-    const onClick = (e: MouseEvent) => {
-      const t = e.target as HTMLElement | null;
-      if (!t) return;
-      const btn = t.closest("button, [role='button'], a");
-      if (!btn) return;
-      if (btn.hasAttribute("data-no-haptic")) return;
-      navigator.vibrate(8);
-    };
-    window.addEventListener("click", onClick, true);
-    return () => window.removeEventListener("click", onClick, true);
-  }, []);
+  // No global haptics — individual interactions handle their own subtle feedback.
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-background">

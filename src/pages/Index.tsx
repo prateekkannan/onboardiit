@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { CampusMap } from "@/components/onboard/CampusMap";
 import { BottomPanel } from "@/components/onboard/BottomPanel";
 import { BottomNav, type Screen } from "@/components/onboard/BottomNav";
@@ -8,13 +8,21 @@ import { AskPage } from "@/components/onboard/AskPage";
 import { NearbyPage } from "@/components/onboard/NearbyPage";
 import { MapFloatingControls } from "@/components/onboard/MapFloatingControls";
 import type { Stop } from "@/data/stops";
+import type { RouteId } from "@/data/routes";
 
 const Index = () => {
   const [screen, setScreen] = useState<Screen>("home");
   const [selectedStop, setSelectedStop] = useState<Stop | null>(null);
   const [recenterTrigger, setRecenterTrigger] = useState(0);
+  const [hiddenRoutes, setHiddenRoutes] = useState<Set<RouteId>>(new Set());
 
-  // No global haptics — individual interactions handle their own subtle feedback.
+  const toggleRoute = (rid: RouteId) =>
+    setHiddenRoutes((prev) => {
+      const next = new Set(prev);
+      if (next.has(rid)) next.delete(rid);
+      else next.add(rid);
+      return next;
+    });
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-background">
@@ -24,8 +32,13 @@ const Index = () => {
             selectedStopId={selectedStop?.id ?? null}
             onSelectStop={setSelectedStop}
             recenterTrigger={recenterTrigger}
+            hiddenRoutes={hiddenRoutes}
           />
-          <MapFloatingControls onRecenter={() => setRecenterTrigger((n) => n + 1)} />
+          <MapFloatingControls
+            onRecenter={() => setRecenterTrigger((n) => n + 1)}
+            hiddenRoutes={hiddenRoutes}
+            onToggleRoute={toggleRoute}
+          />
           <BottomPanel
             selectedStop={selectedStop}
             onClearSelected={() => setSelectedStop(null)}

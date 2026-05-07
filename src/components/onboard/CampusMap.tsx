@@ -123,6 +123,37 @@ function interpolatePingPong(
 
 const BUS_SPEED_MPS = (20 * 1000) / 3600; // 20 km/h ≈ 5.55 m/s
 
+// Offset a polyline perpendicular to each segment by `meters`.
+// Positive = right of travel direction. Used to render overlapping routes
+// as parallel lines so every colour stays visible.
+function offsetPath(path: LL[], meters: number): LL[] {
+  if (meters === 0 || path.length < 2) return path;
+  const out: LL[] = [];
+  const mPerLat = 111130;
+  const latRef = path[0][0];
+  const mPerLng = 111320 * Math.cos((latRef * Math.PI) / 180);
+  for (let i = 0; i < path.length; i++) {
+    // average direction at vertex
+    const prev = path[i - 1] ?? path[i];
+    const next = path[i + 1] ?? path[i];
+    const dx = (next[1] - prev[1]) * mPerLng;
+    const dy = (next[0] - prev[0]) * mPerLat;
+    const len = Math.sqrt(dx * dx + dy * dy) || 1;
+    // perpendicular to the right of travel: (dy, -dx)
+    const nx = dy / len;
+    const ny = -dx / len;
+    const p = path[i];
+    out.push([p[0] + (ny * meters) / mPerLat, p[1] + (nx * meters) / mPerLng]);
+  }
+  return out;
+}
+
+// Spacing in meters between adjacent parallel route lines.
+const ROUTE_OFFSET_M = 6;
+const ROUTE_OFFSET_INDEX: Record<RouteId, number> = {
+  r1: -2.5, r2: -1.5, r3: -0.5, r4: 0.5, r5: 1.5, r6: 2.5,
+};
+
 // ───────── Map effects ─────────
 const FitToCampus = () => {
   const map = useMap();
@@ -271,7 +302,7 @@ export const CampusMap = ({ selectedStopId, onSelectStop, recenterTrigger, hidde
         paths[rid] ? (
           <Polyline
             key={rid}
-            positions={paths[rid]!}
+            positions={offsetPath(paths[rid]!, ROUTE_OFFSET_INDEX[rid] * ROUTE_OFFSET_M)}
             pathOptions={{
               color: ROUTES[rid].hex,
               weight: hiddenRoutes?.has(rid) ? 2 : 5,

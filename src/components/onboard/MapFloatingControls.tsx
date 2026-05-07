@@ -65,7 +65,9 @@ export const MapFloatingControls = ({ onRecenter, hiddenRoutes, onToggleRoute }:
       }
       if (match.minutesAway <= 3) {
         safeBuzz([10, 60, 30, 60, 10]);
-        toast("Your bus is 3 minutes away — head to the stop now.", {
+        const m = Math.max(0, Math.round(match.minutesAway));
+        const mLabel = m === 0 ? "arriving now" : m === 1 ? "1 minute away" : `${m} minutes away`;
+        toast(`Your bus is ${mLabel} — head to the stop now.`, {
           duration: 8000,
           position: "top-center",
         });

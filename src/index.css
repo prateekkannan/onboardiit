@@ -2,6 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Use Space Mono for every digit (and ":" / "." / "-") app-wide while
+   keeping Space Grotesk for all letters. The browser resolves each glyph
+   from the first family in the stack that supports it; we restrict
+   Space Mono to numeric unicode-ranges using the @font-face descriptor.
+   This avoids needing per-element classes. */
+@font-face {
+  font-family: 'AppMono';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: local('Space Mono'),
+       url('https://fonts.gstatic.com/s/spacemono/v13/i7dPIFZifjKcF5UAWdDRYE58RWq7.woff2') format('woff2');
+  unicode-range: U+0030-0039, U+002B, U+002D, U+002E, U+002F, U+003A, U+0025;
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */
@@ -108,7 +123,7 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    font-family: 'AppMono', 'Space Grotesk', system-ui, -apple-system, sans-serif;
   }
 }
 
@@ -166,7 +181,7 @@ All colors MUST be HSL.
 /* Leaflet tweaks: hide attribution flag, keep map clean */
 .leaflet-container {
   background: hsl(var(--background));
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-family: 'AppMono', 'Space Grotesk', system-ui, sans-serif;
 }
 .leaflet-control-attribution {
   font-size: 9px !important;

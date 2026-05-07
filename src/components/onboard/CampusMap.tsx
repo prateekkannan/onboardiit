@@ -15,7 +15,7 @@ import stopIconDark from "@/assets/stop-icon-dark.png";
 import { useFavorites } from "@/hooks/useFavorites";
 
 // ─────────────────── Icons ────────────────────
-function makeStopIcon(active: boolean, dark: boolean, favorite: boolean, popKey?: number) {
+function makeStopIcon(active: boolean, dark: boolean, favorite: boolean, popKey?: number, faded?: boolean) {
   const baseSize = favorite ? 36 : 28;
   const size = active ? Math.max(baseSize, 40) : baseSize;
   const src = dark ? stopIconDark : stopIconLight;
@@ -34,7 +34,7 @@ function makeStopIcon(active: boolean, dark: boolean, favorite: boolean, popKey?
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
     html: `
-      <div class="onboard-stop ${active ? "is-active" : ""}" style="position:relative;
+      <div class="onboard-stop ${active ? "is-active" : ""}" style="position:relative;opacity:${faded ? 0.12 : 1};
         width:${size}px;height:${size}px;
         display:flex;align-items:center;justify-content:center;
         transition: all 200ms ease;
@@ -137,6 +137,8 @@ interface CampusMapProps {
   onSelectStop?: (s: Stop) => void;
   /** Increment to trigger a smooth re-centre on the user's nearest stop. */
   recenterTrigger?: number;
+  /** Routes that should be visually hidden (faded near-invisible). */
+  hiddenRoutes?: Set<RouteId>;
 }
 
 interface BusMarker {
@@ -162,7 +164,7 @@ function RecenterOnTrigger({
   return null;
 }
 
-export const CampusMap = ({ selectedStopId, onSelectStop, recenterTrigger }: CampusMapProps) => {
+export const CampusMap = ({ selectedStopId, onSelectStop, recenterTrigger, hiddenRoutes }: CampusMapProps) => {
   const [tMs, setTMs] = useState<number>(() => Date.now());
   const [userPos, setUserPos] = useState<LL | null>(null);
   const startedAt = useRef<number>(Date.now());
@@ -272,8 +274,8 @@ export const CampusMap = ({ selectedStopId, onSelectStop, recenterTrigger }: Cam
             positions={paths[rid]!}
             pathOptions={{
               color: ROUTES[rid].hex,
-              weight: 5,
-              opacity: 0.85,
+              weight: hiddenRoutes?.has(rid) ? 2 : 5,
+              opacity: hiddenRoutes?.has(rid) ? 0.06 : 0.85,
               lineCap: "round",
               lineJoin: "round",
             }}
@@ -281,7 +283,10 @@ export const CampusMap = ({ selectedStopId, onSelectStop, recenterTrigger }: Cam
         ) : null,
       )}
 
-      {STOPS.map((s) => (
+      {STOPS.map((s) => {
+        const allHidden =
+          hiddenRoutes && s.routes.length > 0 && s.routes.every((r) => hiddenRoutes.has(r));
+        return (
         <Marker
           key={s.id}
           position={[s.lat, s.lng]}
@@ -290,6 +295,7 @@ export const CampusMap = ({ selectedStopId, onSelectStop, recenterTrigger }: Cam
             resolvedTheme === "dark",
             isFavorite(s.id),
             popMap[s.id],
+            allHidden,
           )}
           eventHandlers={{
             click: () => {
@@ -300,7 +306,7 @@ export const CampusMap = ({ selectedStopId, onSelectStop, recenterTrigger }: Cam
                 tapRef.current[s.id] = 0;
                 const added = toggle(s.id);
                 if (added && typeof navigator !== "undefined" && navigator.vibrate) {
-                  navigator.vibrate([15, 40, 25]);
+                  try { navigator.vibrate([4, 30, 6]); } catch {}
                 }
                 setPopMap((m) => ({ ...m, [s.id]: now }));
                 window.setTimeout(() => {
@@ -312,14 +318,17 @@ export const CampusMap = ({ selectedStopId, onSelectStop, recenterTrigger }: Cam
                 return;
               }
               tapRef.current[s.id] = now;
-              if (typeof navigator !== "undefined" && navigator.vibrate) {
-                navigator.vibrate(25);
-              }
+              try {
+                if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
+                  navigator.vibrate(6);
+                }
+              } catch {}
               onSelectStop?.(s);
             },
           }}
         />
-      ))}
+        );
+      })}
 
       {liveBuses.map((b) => (
         <Marker key={b.id} position={b.pos} icon={makeBusIcon(b.routeId)} />

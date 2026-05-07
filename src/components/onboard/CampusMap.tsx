@@ -15,7 +15,7 @@ import stopIconDark from "@/assets/stop-icon-dark.png";
 import { useFavorites } from "@/hooks/useFavorites";
 
 // ─────────────────── Icons ────────────────────
-function makeStopIcon(active: boolean, dark: boolean, favorite: boolean, popKey?: number) {
+function makeStopIcon(active: boolean, dark: boolean, favorite: boolean, popKey?: number, faded?: boolean) {
   const baseSize = favorite ? 36 : 28;
   const size = active ? Math.max(baseSize, 40) : baseSize;
   const src = dark ? stopIconDark : stopIconLight;
@@ -34,7 +34,7 @@ function makeStopIcon(active: boolean, dark: boolean, favorite: boolean, popKey?
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
     html: `
-      <div class="onboard-stop ${active ? "is-active" : ""}" style="position:relative;
+      <div class="onboard-stop ${active ? "is-active" : ""}" style="position:relative;opacity:${faded ? 0.12 : 1};
         width:${size}px;height:${size}px;
         display:flex;align-items:center;justify-content:center;
         transition: all 200ms ease;

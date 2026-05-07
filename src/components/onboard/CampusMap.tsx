@@ -312,9 +312,11 @@ export const CampusMap = ({ selectedStopId, onSelectStop, recenterTrigger }: Cam
                 return;
               }
               tapRef.current[s.id] = now;
-              if (typeof navigator !== "undefined" && navigator.vibrate) {
-                navigator.vibrate(25);
-              }
+              try {
+                if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
+                  navigator.vibrate(6);
+                }
+              } catch {}
               onSelectStop?.(s);
             },
           }}

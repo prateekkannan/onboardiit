@@ -108,7 +108,13 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+    font-feature-settings: "tnum" off;
+  }
+  /* Render any digit using Space Mono — covers prices, times, counters, ETAs */
+  .num, time, .tabular-nums {
+    font-family: 'Space Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-variant-numeric: tabular-nums;
   }
 }
 
@@ -166,7 +172,7 @@ All colors MUST be HSL.
 /* Leaflet tweaks: hide attribution flag, keep map clean */
 .leaflet-container {
   background: hsl(var(--background));
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
 }
 .leaflet-control-attribution {
   font-size: 9px !important;

@@ -33,9 +33,11 @@ export const BottomNav = ({ active, onChange }: BottomNavProps) => {
             <button
               key={t.id}
               onClick={() => {
-                if (typeof navigator !== "undefined" && navigator.vibrate) {
-                  navigator.vibrate(50);
-                }
+                try {
+                  if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
+                    navigator.vibrate(10);
+                  }
+                } catch {}
                 onChange(t.id);
               }}
               className={`flex flex-col items-center justify-center rounded-full px-2.5 py-1 transition-colors ${

@@ -80,3 +80,24 @@ export function findNearestStop(coord: [number, number]): Stop {
   }
   return best;
 }
+
+/** Find the route that connects `fromId` → `toId` in service direction
+ *  with the fewest intermediate stops. Returns null if no single route
+ *  serves the pair directionally. */
+export function findBestRouteBetween(
+  fromId: string,
+  toId: string,
+): { routeId: RouteId; stops: string[] } | null {
+  let best: { routeId: RouteId; stops: string[] } | null = null;
+  (Object.keys(ROUTE_STOPS) as RouteId[]).forEach((rid) => {
+    const seq = ROUTE_STOPS[rid];
+    const i = seq.indexOf(fromId);
+    const j = seq.indexOf(toId);
+    if (i === -1 || j === -1 || j <= i) return;
+    const slice = seq.slice(i, j + 1);
+    if (!best || slice.length < best.stops.length) {
+      best = { routeId: rid, stops: slice };
+    }
+  });
+  return best;
+}

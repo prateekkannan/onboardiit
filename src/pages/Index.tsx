@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CampusMap } from "@/components/onboard/CampusMap";
 import { BottomPanel } from "@/components/onboard/BottomPanel";
 import { BottomNav, type Screen } from "@/components/onboard/BottomNav";
@@ -7,14 +7,42 @@ import { TopBar } from "@/components/onboard/TopBar";
 import { AskPage } from "@/components/onboard/AskPage";
 import { NearbyPage } from "@/components/onboard/NearbyPage";
 import { MapFloatingControls } from "@/components/onboard/MapFloatingControls";
-import type { Stop } from "@/data/stops";
+import { JourneyPlanner } from "@/components/onboard/JourneyPlanner";
+import { findBestRouteBetween, type Stop } from "@/data/stops";
 import type { RouteId } from "@/data/routes";
+import { useNearestStop } from "@/hooks/useNearestStop";
+import { routeSegmentBetween } from "@/data/roads";
 
 const Index = () => {
   const [screen, setScreen] = useState<Screen>("home");
   const [selectedStop, setSelectedStop] = useState<Stop | null>(null);
   const [recenterTrigger, setRecenterTrigger] = useState(0);
   const [hiddenRoutes, setHiddenRoutes] = useState<Set<RouteId>>(new Set());
+  const { stop: nearestStop } = useNearestStop();
+  const [fromStop, setFromStop] = useState<Stop | null>(null);
+  const [toStop, setToStop] = useState<Stop | null>(null);
+  const [fromManuallySet, setFromManuallySet] = useState(false);
+
+  // Keep `from` synced to the live nearest stop unless the user picked one.
+  useEffect(() => {
+    if (!fromManuallySet) setFromStop(nearestStop);
+  }, [nearestStop, fromManuallySet]);
+
+  const effectiveFrom = fromStop ?? nearestStop;
+
+  const focus = useMemo(() => {
+    if (!toStop || effectiveFrom.id === toStop.id) return null;
+    const best = findBestRouteBetween(effectiveFrom.id, toStop.id);
+    if (!best) return null;
+    const segment = routeSegmentBetween(best.routeId, effectiveFrom.id, toStop.id);
+    if (!segment) return null;
+    return {
+      fromId: effectiveFrom.id,
+      toId: toStop.id,
+      routeId: best.routeId,
+      segment,
+    };
+  }, [effectiveFrom, toStop]);
 
   const toggleRoute = (rid: RouteId) =>
     setHiddenRoutes((prev) => {
@@ -33,6 +61,22 @@ const Index = () => {
             onSelectStop={setSelectedStop}
             recenterTrigger={recenterTrigger}
             hiddenRoutes={hiddenRoutes}
+            focus={focus}
+          />
+          <JourneyPlanner
+            fromStop={effectiveFrom}
+            toStop={toStop}
+            isFromAuto={!fromManuallySet}
+            onChangeFrom={(s) => {
+              setFromStop(s);
+              setFromManuallySet(true);
+            }}
+            onChangeTo={(s) => {
+              setToStop(s);
+              if (!s) {
+                setFromManuallySet(false);
+              }
+            }}
           />
           <MapFloatingControls
             onRecenter={() => setRecenterTrigger((n) => n + 1)}
@@ -42,6 +86,7 @@ const Index = () => {
           <BottomPanel
             selectedStop={selectedStop}
             onClearSelected={() => setSelectedStop(null)}
+            forceCollapsed={!!focus}
           />
         </div>
       ) : screen === "schedule" ? (

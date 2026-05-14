@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Polyline, Tooltip, useMap } from "react-leaflet";
 import L from "leaflet";
 import {
   CAMPUS_BOUNDS,
@@ -170,6 +170,13 @@ interface CampusMapProps {
   recenterTrigger?: number;
   /** Routes that should be visually hidden (faded near-invisible). */
   hiddenRoutes?: Set<RouteId>;
+  /** Optional journey-planner focus: highlight one segment, fade everything else. */
+  focus?: {
+    fromId: string;
+    toId: string;
+    routeId: RouteId;
+    segment: LL[];
+  } | null;
 }
 
 interface BusMarker {
@@ -195,7 +202,7 @@ function RecenterOnTrigger({
   return null;
 }
 
-export const CampusMap = ({ selectedStopId, onSelectStop, recenterTrigger, hiddenRoutes }: CampusMapProps) => {
+export const CampusMap = ({ selectedStopId, onSelectStop, recenterTrigger, hiddenRoutes, focus }: CampusMapProps) => {
   const [tMs, setTMs] = useState<number>(() => Date.now());
   const [userPos, setUserPos] = useState<LL | null>(null);
   const startedAt = useRef<number>(Date.now());
@@ -305,8 +312,8 @@ export const CampusMap = ({ selectedStopId, onSelectStop, recenterTrigger, hidde
             positions={offsetPath(paths[rid]!, ROUTE_OFFSET_INDEX[rid] * ROUTE_OFFSET_M)}
             pathOptions={{
               color: ROUTES[rid].hex,
-              weight: hiddenRoutes?.has(rid) ? 2 : 5,
-              opacity: hiddenRoutes?.has(rid) ? 0.06 : 0.85,
+              weight: hiddenRoutes?.has(rid) ? 2 : focus ? 3 : 5,
+              opacity: hiddenRoutes?.has(rid) ? 0.06 : focus ? 0.08 : 0.85,
               lineCap: "round",
               lineJoin: "round",
             }}
@@ -314,15 +321,30 @@ export const CampusMap = ({ selectedStopId, onSelectStop, recenterTrigger, hidde
         ) : null,
       )}
 
+      {focus && (
+        <Polyline
+          positions={focus.segment}
+          pathOptions={{
+            color: ROUTES[focus.routeId].hex,
+            weight: 7,
+            opacity: 0.95,
+            lineCap: "round",
+            lineJoin: "round",
+          }}
+        />
+      )}
+
       {STOPS.map((s) => {
-        const allHidden =
-          hiddenRoutes && s.routes.length > 0 && s.routes.every((r) => hiddenRoutes.has(r));
+        const isFocusEndpoint = focus && (s.id === focus.fromId || s.id === focus.toId);
+        const allHidden = focus
+          ? !isFocusEndpoint
+          : hiddenRoutes && s.routes.length > 0 && s.routes.every((r) => hiddenRoutes.has(r));
         return (
         <Marker
           key={s.id}
           position={[s.lat, s.lng]}
           icon={makeStopIcon(
-            selectedStopId === s.id,
+            selectedStopId === s.id || !!isFocusEndpoint,
             resolvedTheme === "dark",
             isFavorite(s.id),
             popMap[s.id],
@@ -357,12 +379,18 @@ export const CampusMap = ({ selectedStopId, onSelectStop, recenterTrigger, hidde
               onSelectStop?.(s);
             },
           }}
-        />
+        >
+          {isFocusEndpoint && (
+            <Tooltip permanent direction="top" offset={[0, -18]} className="onboard-stop-label">
+              {s.name}
+            </Tooltip>
+          )}
+        </Marker>
         );
       })}
 
       {liveBuses.map((b) => (
-        <Marker key={b.id} position={b.pos} icon={makeBusIcon(b.routeId)} />
+        <Marker key={b.id} position={b.pos} icon={makeBusIcon(b.routeId)} opacity={focus && b.routeId !== focus.routeId ? 0.15 : 1} />
       ))}
 
       {userPos && <Marker position={userPos} icon={makeUserIcon()} />}

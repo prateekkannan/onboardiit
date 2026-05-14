@@ -116,17 +116,47 @@ function smooth(path: LL[], samplesPerSeg = 10): LL[] {
 // For each route, glue together the appropriate road polylines
 // (in correct service direction). This keeps every drawn line strictly
 // on these three roads.
-export const ROUTE_PATHS: Record<RouteId, LL[]> = {
+export const ROUTE_PATHS_RAW: Record<RouteId, LL[]> = {
   // Main Gate → Velachery (Bonn → Alumni; no library, no OAT)
-  r1: smooth([...BONN_AVENUE, ...ALUMNI_AVENUE.slice(1)]),
+  r1: [...BONN_AVENUE, ...ALUMNI_AVENUE.slice(1)],
   // Velachery → Main Gate (reverse)
-  r2: smooth([...rev(ALUMNI_AVENUE), ...rev(BONN_AVENUE).slice(1)]),
+  r2: [...rev(ALUMNI_AVENUE), ...rev(BONN_AVENUE).slice(1)],
   // Velachery → Hostel: academic strip back to Gajendra, then library/OAT spur, then Hostel
-  r3: smooth([...rev(ALUMNI_AVENUE), ...LIBRARY_OAT_SPUR.slice(1), ...HOSTEL_AVENUE.slice(1)]),
+  r3: [...rev(ALUMNI_AVENUE), ...LIBRARY_OAT_SPUR.slice(1), ...HOSTEL_AVENUE.slice(1)],
   // Hostel → Main Gate: Hostel reversed to OAT, library spur reversed to Gajendra, then Bonn reversed
-  r4: smooth([...rev(HOSTEL_AVENUE), ...rev(LIBRARY_OAT_SPUR).slice(1), ...rev(BONN_AVENUE).slice(1)]),
+  r4: [...rev(HOSTEL_AVENUE), ...rev(LIBRARY_OAT_SPUR).slice(1), ...rev(BONN_AVENUE).slice(1)],
   // Hostel → Velachery: Hostel reversed to OAT, spur reversed to Gajendra, then Alumni
-  r5: smooth([...rev(HOSTEL_AVENUE), ...rev(LIBRARY_OAT_SPUR).slice(1), ...ALUMNI_AVENUE.slice(1)]),
+  r5: [...rev(HOSTEL_AVENUE), ...rev(LIBRARY_OAT_SPUR).slice(1), ...ALUMNI_AVENUE.slice(1)],
   // Main Gate → Hostel: Bonn → library/OAT spur → Hostel
-  r6: smooth([...BONN_AVENUE, ...LIBRARY_OAT_SPUR.slice(1), ...HOSTEL_AVENUE.slice(1)]),
+  r6: [...BONN_AVENUE, ...LIBRARY_OAT_SPUR.slice(1), ...HOSTEL_AVENUE.slice(1)],
 };
+
+export const ROUTE_PATHS: Record<RouteId, LL[]> = {
+  r1: smooth(ROUTE_PATHS_RAW.r1),
+  r2: smooth(ROUTE_PATHS_RAW.r2),
+  r3: smooth(ROUTE_PATHS_RAW.r3),
+  r4: smooth(ROUTE_PATHS_RAW.r4),
+  r5: smooth(ROUTE_PATHS_RAW.r5),
+  r6: smooth(ROUTE_PATHS_RAW.r6),
+};
+
+/** Returns the smoothed polyline segment of `routeId` between two
+ *  stop ids (inclusive). Uses the raw road geometry so the slice lands
+ *  exactly on the stop coordinates, then smooths the result. */
+export function routeSegmentBetween(
+  routeId: RouteId,
+  fromId: string,
+  toId: string,
+): LL[] | null {
+  const a = getStop(fromId);
+  const b = getStop(toId);
+  if (!a || !b) return null;
+  const raw = ROUTE_PATHS_RAW[routeId];
+  const sameLL = (p: LL, lat: number, lng: number) =>
+    Math.abs(p[0] - lat) < 1e-7 && Math.abs(p[1] - lng) < 1e-7;
+  const iA = raw.findIndex((p) => sameLL(p, a.lat, a.lng));
+  const iB = raw.findIndex((p) => sameLL(p, b.lat, b.lng));
+  if (iA === -1 || iB === -1 || iA === iB) return null;
+  const slice = iA < iB ? raw.slice(iA, iB + 1) : raw.slice(iB, iA + 1).reverse();
+  return smooth(slice);
+}

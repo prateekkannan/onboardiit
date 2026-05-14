@@ -78,20 +78,55 @@ export const HOSTEL_AVENUE: LL[] = [
 // Helper: reverse a polyline.
 const rev = (p: LL[]): LL[] => [...p].reverse();
 
+// Catmull–Rom spline smoother. Converts an angular polyline into a
+// gently curved one that reads as a road rather than a sequence of
+// straight segments. Stop coordinates are preserved exactly because
+// the spline passes through every input vertex.
+function smooth(path: LL[], samplesPerSeg = 10): LL[] {
+  if (path.length < 3) return path;
+  const out: LL[] = [];
+  for (let i = 0; i < path.length - 1; i++) {
+    const p0 = path[i - 1] ?? path[i];
+    const p1 = path[i];
+    const p2 = path[i + 1];
+    const p3 = path[i + 2] ?? p2;
+    for (let s = 0; s < samplesPerSeg; s++) {
+      const t = s / samplesPerSeg;
+      const t2 = t * t;
+      const t3 = t2 * t;
+      const lat =
+        0.5 *
+        (2 * p1[0] +
+          (-p0[0] + p2[0]) * t +
+          (2 * p0[0] - 5 * p1[0] + 4 * p2[0] - p3[0]) * t2 +
+          (-p0[0] + 3 * p1[0] - 3 * p2[0] + p3[0]) * t3);
+      const lng =
+        0.5 *
+        (2 * p1[1] +
+          (-p0[1] + p2[1]) * t +
+          (2 * p0[1] - 5 * p1[1] + 4 * p2[1] - p3[1]) * t2 +
+          (-p0[1] + 3 * p1[1] - 3 * p2[1] + p3[1]) * t3);
+      out.push([lat, lng]);
+    }
+  }
+  out.push(path[path.length - 1]);
+  return out;
+}
+
 // For each route, glue together the appropriate road polylines
 // (in correct service direction). This keeps every drawn line strictly
 // on these three roads.
 export const ROUTE_PATHS: Record<RouteId, LL[]> = {
   // Main Gate → Velachery (Bonn → Alumni; no library, no OAT)
-  r1: [...BONN_AVENUE, ...ALUMNI_AVENUE.slice(1)],
+  r1: smooth([...BONN_AVENUE, ...ALUMNI_AVENUE.slice(1)]),
   // Velachery → Main Gate (reverse)
-  r2: [...rev(ALUMNI_AVENUE), ...rev(BONN_AVENUE).slice(1)],
+  r2: smooth([...rev(ALUMNI_AVENUE), ...rev(BONN_AVENUE).slice(1)]),
   // Velachery → Hostel: academic strip back to Gajendra, then library/OAT spur, then Hostel
-  r3: [...rev(ALUMNI_AVENUE), ...LIBRARY_OAT_SPUR.slice(1), ...HOSTEL_AVENUE.slice(1)],
+  r3: smooth([...rev(ALUMNI_AVENUE), ...LIBRARY_OAT_SPUR.slice(1), ...HOSTEL_AVENUE.slice(1)]),
   // Hostel → Main Gate: Hostel reversed to OAT, library spur reversed to Gajendra, then Bonn reversed
-  r4: [...rev(HOSTEL_AVENUE), ...rev(LIBRARY_OAT_SPUR).slice(1), ...rev(BONN_AVENUE).slice(1)],
+  r4: smooth([...rev(HOSTEL_AVENUE), ...rev(LIBRARY_OAT_SPUR).slice(1), ...rev(BONN_AVENUE).slice(1)]),
   // Hostel → Velachery: Hostel reversed to OAT, spur reversed to Gajendra, then Alumni
-  r5: [...rev(HOSTEL_AVENUE), ...rev(LIBRARY_OAT_SPUR).slice(1), ...ALUMNI_AVENUE.slice(1)],
+  r5: smooth([...rev(HOSTEL_AVENUE), ...rev(LIBRARY_OAT_SPUR).slice(1), ...ALUMNI_AVENUE.slice(1)]),
   // Main Gate → Hostel: Bonn → library/OAT spur → Hostel
-  r6: [...BONN_AVENUE, ...LIBRARY_OAT_SPUR.slice(1), ...HOSTEL_AVENUE.slice(1)],
+  r6: smooth([...BONN_AVENUE, ...LIBRARY_OAT_SPUR.slice(1), ...HOSTEL_AVENUE.slice(1)]),
 };

@@ -11,6 +11,7 @@ import type { Stop } from "@/data/stops";
 interface BottomPanelProps {
   selectedStop?: Stop | null;
   onClearSelected?: () => void;
+  forceCollapsed?: boolean;
 }
 
 // Visible peek height when collapsed — kept ABOVE the bottom nav so the
@@ -21,6 +22,7 @@ const NAV_GAP = BOTTOM_NAV_HEIGHT + 8; // sit just above nav
 export const BottomPanel = ({
   selectedStop,
   onClearSelected,
+  forceCollapsed,
 }: BottomPanelProps) => {
   const now = getDemoNowMinutes();
   const { stop: geoStop, source } = useNearestStop();
@@ -60,6 +62,10 @@ export const BottomPanel = ({
   useEffect(() => {
     if (selectedStop) setCollapsed(false);
   }, [selectedStop]);
+
+  useEffect(() => {
+    if (forceCollapsed) setCollapsed(true);
+  }, [forceCollapsed]);
 
   const incoming = useMemo(
     () => upcomingArrivalsAt(stop.id, now, 90),

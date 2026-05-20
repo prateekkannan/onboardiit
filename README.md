@@ -1,3 +1,4 @@
-# Welcome to your Lovable project
+# My flagship project as of now
 
-TODO: Document your project here
+Welcome to Onboard IIT, created by meeee!
+It's the primary bus and cart tracking app to be used by IIT Madras students.

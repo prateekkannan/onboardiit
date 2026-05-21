@@ -47,7 +47,6 @@ export const NEARBY: Record<string, Landmark[]> = {
   "main-gate": [
     A("Security post and gate entry", 0),
     A("Auto and taxi stand", 1),
-    O("Vana Vani School road junction", 10),
   ],
   "d1-bonn": [
     O("D1 faculty residential quarters", 1),

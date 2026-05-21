@@ -47,8 +47,6 @@ export const NEARBY: Record<string, Landmark[]> = {
   "main-gate": [
     A("Security post and gate entry", 0),
     A("Auto and taxi stand", 1),
-    A("Bose Einstein Guest House", 8),
-    O("Vana Vani School road junction", 10),
   ],
   "d1-bonn": [
     O("D1 faculty residential quarters", 1),
@@ -85,14 +83,13 @@ export const NEARBY: Record<string, Landmark[]> = {
     A("Academic Section", 1),
     A("Heritage Centre", 1),
     A("Shopping Centre 2", 2),
-    F("Tiffany's food court", 2),
     A("Medical Centre and Institute Hospital", 2),
-    S("Institute gym", 3),
     A("Bose Einstein Guest House", 4),
     A("Taramani Guest House", 5),
     A("ICICI Bank", 3),
     A("Canara Bank", 3),
     O("Ganapathi Temple", 4),
+    O("Kendriya Vidyalaya School", 4),
   ],
   "hsb": [
     D("Humanities and Sciences Block HSB", 1),
@@ -188,7 +185,6 @@ export const NEARBY: Record<string, Landmark[]> = {
     H("Ganga Hostel", 1),
     H("Alakananda Hostel", 1),
     H("Saraswathi Hostel", 2),
-    O("Quark gaming zone", 2),
     H("Krishna Hostel", 2),
     H("Brahmaputra Hostel", 2),
     F("Himalaya Mega Mess", 2),

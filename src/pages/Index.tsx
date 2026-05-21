@@ -8,6 +8,7 @@ import { AskPage } from "@/components/onboard/AskPage";
 import { NearbyPage } from "@/components/onboard/NearbyPage";
 import { MapFloatingControls } from "@/components/onboard/MapFloatingControls";
 import { JourneyPlanner } from "@/components/onboard/JourneyPlanner";
+import { EtaCard } from "@/components/onboard/EtaCard";
 import { findBestRouteBetween, type Stop } from "@/data/stops";
 import type { RouteId } from "@/data/routes";
 import { useNearestStop } from "@/hooks/useNearestStop";
@@ -78,6 +79,9 @@ const Index = () => {
               }
             }}
           />
+          {toStop && effectiveFrom.id !== toStop.id && (
+            <EtaCard fromStop={effectiveFrom} toStop={toStop} />
+          )}
           <MapFloatingControls
             onRecenter={() => setRecenterTrigger((n) => n + 1)}
             hiddenRoutes={hiddenRoutes}

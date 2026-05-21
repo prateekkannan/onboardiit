@@ -11,12 +11,12 @@ type Msg = { role: "user" | "assistant"; content: string };
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ask-iitm`;
 
 const ROUTE_PILL_STYLE: Record<string, { bg: string; fg: string }> = {
-  "Route 1": { bg: "#03AED2", fg: "#FFFFFF" },
-  "Route 2": { bg: "#D12052", fg: "#FFFFFF" },
-  "Route 3": { bg: "#F8DE22", fg: "#000000" },
-  "Route 4": { bg: "#F45B26", fg: "#FFFFFF" },
-  "Route 5": { bg: "#A7F432", fg: "#000000" },
-  "Route 6": { bg: "#6600FF", fg: "#FFFFFF" },
+  "Route 1": { bg: "#FF0054", fg: "#FFFFFF" },
+  "Route 2": { bg: "#00B4D8", fg: "#FFFFFF" },
+  "Route 3": { bg: "#F5F500", fg: "#000000" },
+  "Route 4": { bg: "#06D6A0", fg: "#FFFFFF" },
+  "Route 5": { bg: "#FF6B35", fg: "#FFFFFF" },
+  "Route 6": { bg: "#9B5DE5", fg: "#FFFFFF" },
 };
 
 const renderWithRoutePills = (text: string) => {

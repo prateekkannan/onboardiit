@@ -118,7 +118,7 @@ export const BottomPanel = ({
     >
       {/* Drag handle — always interactive, always above the bottom nav */}
       <div
-        className="mx-auto flex w-full cursor-grab touch-none flex-col items-center pb-2 pt-1 active:cursor-grabbing"
+        className="relative mx-auto flex w-full cursor-grab touch-none flex-col items-center pb-2 pt-1 active:cursor-grabbing"
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -137,10 +137,23 @@ export const BottomPanel = ({
             </span>
           </div>
         )}
+        {selectedStop && onClearSelected && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onClearSelected();
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="absolute right-0 top-0 rounded-full bg-foreground/10 p-1.5 text-foreground/70 transition-colors hover:bg-foreground/20"
+            aria-label="Clear selection"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        )}
       </div>
 
       <div className="mt-1 flex items-end justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-foreground/60">
             <MapPin className="h-3 w-3" />
             {selectedStop
@@ -149,37 +162,27 @@ export const BottomPanel = ({
               ? "Nearest stop"
               : "Nearest stop · default"}
           </p>
-          <h1 className="mt-1 text-2xl font-extrabold leading-tight text-foreground">
+          <h1 className="mt-1 truncate text-2xl font-extrabold leading-tight text-foreground">
             {stop.name}
           </h1>
-        </div>
-        <div className="flex shrink-0 flex-col items-end gap-1 pb-1.5">
-          <span
-            className="font-medium tabular-nums text-foreground/50"
-            style={{ fontSize: "11px" }}
-            aria-label="Current time"
-          >
-            {clock}
-          </span>
-          <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5">
-            {stopRouteColors.map((c, i) => (
-              <span
-                key={i}
-                className="h-2.5 w-2.5 rounded-full border border-white/70"
-                style={{ backgroundColor: c }}
-              />
-            ))}
-          </div>
-          {selectedStop && onClearSelected && (
-            <button
-              onClick={onClearSelected}
-              className="ml-1 rounded-full bg-foreground/10 p-1 text-foreground/70 hover:bg-foreground/15"
-              aria-label="Clear selection"
+          <div className="mt-1.5 flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              {stopRouteColors.map((c, i) => (
+                <span
+                  key={i}
+                  className="h-2.5 w-2.5 rounded-full border border-white/70"
+                  style={{ backgroundColor: c }}
+                />
+              ))}
+            </div>
+            <span className="text-foreground/30">·</span>
+            <span
+              className="font-medium tabular-nums text-foreground/55"
+              style={{ fontSize: "11px" }}
+              aria-label="Current time"
             >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          )}
+              {clock}
+            </span>
           </div>
         </div>
       </div>

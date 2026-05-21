@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { Crosshair, Layers, SlidersHorizontal, Bell } from "lucide-react";
+import { Crosshair, Layers, SlidersHorizontal, Bell, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { ROUTES, ROUTE_ORDER, type RouteId } from "@/data/routes";
 import { BOTTOM_NAV_HEIGHT } from "./BottomNav";
 import { upcomingArrivalsAt, type UpcomingArrival } from "@/data/schedule";
 import { useNearestStop } from "@/hooks/useNearestStop";
 import { getDemoNowMinutes } from "@/lib/onboard";
+import { STOPS, getStop } from "@/data/stops";
 
 type SheetKind = "legend" | "filter" | "alert" | null;
 
@@ -35,6 +36,9 @@ export const MapFloatingControls = ({ onRecenter, hiddenRoutes, onToggleRoute }:
   const [sheet, setSheet] = useState<SheetKind>(null);
   const [armed, setArmed] = useState<ArmedAlert | null>(null);
   const { stop: nearest } = useNearestStop();
+  const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
+  const [stopPickerOpen, setStopPickerOpen] = useState(false);
+  const activeStop = (selectedStopId && getStop(selectedStopId)) || nearest;
 
   // Outside-tap to dismiss
   useEffect(() => {
@@ -98,7 +102,7 @@ export const MapFloatingControls = ({ onRecenter, hiddenRoutes, onToggleRoute }:
 
   const arrivals: UpcomingArrival[] =
     sheet === "alert"
-      ? upcomingArrivalsAt(nearest.id, getDemoNowMinutes(), 90).slice(0, 8)
+      ? upcomingArrivalsAt(activeStop.id, getDemoNowMinutes(), 90).slice(0, 8)
       : [];
 
   return (
@@ -254,7 +258,7 @@ export const MapFloatingControls = ({ onRecenter, hiddenRoutes, onToggleRoute }:
         >
           <div className="mb-3 flex items-center justify-between">
             <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              Alert me · {nearest.name}
+              Alert me
             </p>
             {armed && (
               <button
@@ -263,6 +267,40 @@ export const MapFloatingControls = ({ onRecenter, hiddenRoutes, onToggleRoute }:
               >
                 Disarm
               </button>
+            )}
+          </div>
+          <div className="relative mb-3">
+            <button
+              onClick={(e) => { e.stopPropagation(); safeBuzz(6); setStopPickerOpen((v) => !v); }}
+              className="flex w-full items-center justify-between rounded-2xl border border-border px-3 py-2 text-left hover:bg-muted"
+            >
+              <div className="flex min-w-0 flex-col">
+                <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+                  Stop {selectedStopId ? "" : "· nearest"}
+                </span>
+                <span className="truncate text-sm font-semibold text-foreground">{activeStop.name}</span>
+              </div>
+              <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${stopPickerOpen ? "rotate-180" : ""}`} />
+            </button>
+            {stopPickerOpen && (
+              <div className="absolute left-0 right-0 top-full z-10 mt-1 max-h-60 overflow-y-auto rounded-2xl border border-border bg-card shadow-xl no-scrollbar">
+                <button
+                  onClick={(e) => { e.stopPropagation(); safeBuzz(6); setSelectedStopId(null); setStopPickerOpen(false); }}
+                  className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-muted"
+                >
+                  <span className="font-medium">{nearest.name}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Nearest</span>
+                </button>
+                {STOPS.filter((s) => s.id !== nearest.id).map((s) => (
+                  <button
+                    key={s.id}
+                    onClick={(e) => { e.stopPropagation(); safeBuzz(6); setSelectedStopId(s.id); setStopPickerOpen(false); }}
+                    className="block w-full px-3 py-2 text-left text-sm hover:bg-muted"
+                  >
+                    {s.name}
+                  </button>
+                ))}
+              </div>
             )}
           </div>
           {arrivals.length === 0 ? (
@@ -286,8 +324,8 @@ export const MapFloatingControls = ({ onRecenter, hiddenRoutes, onToggleRoute }:
                           routeId: u.routeId,
                           busName: u.busName,
                           arrivalTime: u.arrivalTime,
-                          stopId: nearest.id,
-                          stopName: nearest.name,
+                          stopId: activeStop.id,
+                          stopName: activeStop.name,
                         });
                         toast(`Alert armed for ${r.name} • ${u.arrivalTime}`, {
                           description: "We'll buzz when it's 3 min away.",
